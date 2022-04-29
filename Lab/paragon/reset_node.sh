@@ -1,0 +1,12 @@
+vmm stop node0
+vmm stop node1
+vmm stop node2
+vmm stop node3
+vmm unbind node0
+vmm unbind node1
+vmm unbind node2
+vmm unbind node3
+vmm start node0
+vmm start node1
+vmm start node2
+vmm start node3

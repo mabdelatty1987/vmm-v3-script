@@ -1,0 +1,11 @@
+#
+#
+# Import TunnelPath Error Log
+# Import File: /opt/northstar/data/archives/41552307-621a-48c1-b8b0-0d26da5703d0/tunnelpath.x
+#
+#
+##  Software Release= 6.4.0, 64 bits,  Compilation Date= 20210616
+##  Customer= MICRO_SERVICE
+##  Platform=x86_64, OS=Linux 4.15.0-151-generic
+##  Report Date= 2021-9-9 06:11   Runcode=x  User=pcs
+Lineno,ErrorCode,ErrorMessage,Action,LineDetail

@@ -1,0 +1,78 @@
+---
+name: test1
+pod: 
+  type: vmm
+  vmmserver: q-pod25-vmm.englab.juniper.net
+  jumpserver: ttqc-shell010.juniper.net
+  user: irzan
+  adpassword: ThisIsMyPassword
+  home_dir : /vmm/data/user_disks/irzan
+  ssh_key_name: key1
+  ntp: 172.16.10.1
+images:
+  gw: images/gw.qcow2
+  ubuntu: images/ubuntu-20.04.img
+  vmx_re: images/vmx/junos-vmx-x86-64-21.4R1.12.vmdk
+junos_login:
+  login: admin
+  password: pass01
+vm:
+  gw:
+    type: gw
+    os: gw
+    interfaces:
+      em0: 
+        bridge: external
+      em1: 
+        bridge: lan1
+        ipv4: 172.16.11.1/24
+        dhcp_range: 172.16.11.5-172.16.11.25
+  client1:
+    type: pctiny
+    os: ubuntu
+    interfaces:
+      em0: 
+        bridge: lan1 
+        ipv4: 172.16.11.11/24 
+      em1: 
+        bridge: access1
+  client2:
+    type: pctiny
+    os: ubuntu
+    interfaces:
+      em0: 
+        bridge: lan1 
+        ipv4: 172.16.11.12/24 
+      em1: 
+        bridge: access1
+  client3:
+    type: pctiny
+    os: ubuntu
+    interfaces:
+      em0: 
+        bridge: lan1 
+        ipv4: 172.16.11.13/24 
+      em1: 
+        bridge: access1
+  svr1:
+    type: pcmedium
+    os: ubuntu
+    interfaces:
+      em0: 
+        bridge: lan1 
+        ipv4: 172.16.11.14/24 
+      em1: 
+        bridge: lan2
+  vbng:
+    type: junos
+    os: vmx
+    interfaces:
+      mgmt:
+        bridge: lan1
+        ipv4: 172.16.11.101/24 
+      ge-0/0/0:
+        bridge: lan2
+        family:
+          inet: 172.16.12.1/24
+      ge-0/0/1: 
+        bridge: access1

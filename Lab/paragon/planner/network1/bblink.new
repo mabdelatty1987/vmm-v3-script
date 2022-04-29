@@ -1,0 +1,87 @@
+#############################################################################
+##
+## File name: /opt/northstar/data/.network/bblink.new
+## Generated Date: Wed Sep 08 2021 14:14:49 GMT+0000 (Coordinated Universal Time)
+## Source: /traffic-engineering/api/topology/v2/1/links/updateaffinity
+##
+#############################################################################
+##  Software Release=6.4.0,  64 bits, Compilation Date=20210616
+##  Report Date=2021-9-8 14:14,   Runcode=x  User=root
+##  Source = getipconf
+##  Platform=x86_64, OS=Linux 4.15.0-151-generic
+P1_ge_0/0/0.0        PE1         P1 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/1.0 C2=ge-0/0/0.0 IP1=10.100.1.128/31 IP2=10.100.1.129/31 RSVP=default  ATTR=NA # UP E10.100.1.128  #! 
+P2_ge_0/0/0.0        PE1         P2 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/2.0 C2=ge-0/0/0.0 IP1=10.100.1.130/31 IP2=10.100.1.131/31 RSVP=default  ATTR=NA # UP E10.100.1.130  #! 
+P1_ge_0/0/1.0         P1         P2 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/1.0 C2=ge-0/0/1.0 IP1=10.100.1.132/31 IP2=10.100.1.133/31 RSVP=default  ATTR=NA # UP E10.100.1.132  #! 
+P1_ge_0/0/2.0         P1         P3 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/2.0 C2=ge-0/0/0.0 IP1=10.100.1.134/31 IP2=10.100.1.135/31 RSVP=default  ATTR=NA # UP E10.100.1.134  #! 
+P1_ge_0/0/3.0         P1         P3 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/3.0 C2=ge-0/0/1.0 IP1=10.100.1.136/31 IP2=10.100.1.137/31 RSVP=default  ATTR=NA # UP E10.100.1.136  #! 
+P1_ge_0/0/4.0         P1         P4 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/4.0 C2=ge-0/0/0.0 IP1=10.100.1.138/31 IP2=10.100.1.139/31 RSVP=default  ATTR=NA # UP E10.100.1.138  #! 
+P2_ge_0/0/2.0         P2         P4 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/2.0 C2=ge-0/0/1.0 IP1=10.100.1.140/31 IP2=10.100.1.141/31 RSVP=default  ATTR=NA # UP E10.100.1.140  #! 
+P3_ge_0/0/2.0         P3         P4 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/2.0 C2=ge-0/0/2.0 IP1=10.100.1.142/31 IP2=10.100.1.143/31 RSVP=default  ATTR=NA # UP E10.100.1.142  #! 
+P3_ge_0/0/3.0         P3         P5 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/3.0 C2=ge-0/0/0.0 IP1=10.100.1.144/31 IP2=10.100.1.145/31 RSVP=default  ATTR=NA # UP E10.100.1.144  #! 
+P4_ge_0/0/3.0         P4         P5 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/3.0 C2=ge-0/0/1.0 IP1=10.100.1.150/31 IP2=10.100.1.151/31 RSVP=default  ATTR=NA # UP E10.100.1.150  #! 
+P3_ge_0/0/4.0         P3        PE2 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/4.0 C2=ge-0/0/1.0 IP1=10.100.1.146/31 IP2=10.100.1.147/31 RSVP=default  ATTR=NA # UP E10.100.1.146  #! 
+P5_ge_0/0/2.0         P5        PE2 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/2.0 C2=ge-0/0/2.0 IP1=10.100.1.152/31 IP2=10.100.1.153/31 RSVP=default  ATTR=NA # UP E10.100.1.152  #! 
+P3_ge_0/0/5.0         P3        PE3 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/5.0 C2=ge-0/0/1.0 IP1=10.100.1.148/31 IP2=10.100.1.149/31 RSVP=default  ATTR=NA # UP E10.100.1.148  #! 
+P5_ge_0/0/3.0         P5        PE3 DEF  1       ET1G  BW=1.0G  MPLSTE MTU=8986 ISIS1 ISIS2 C1=ge-0/0/3.0 C2=ge-0/0/2.0 IP1=10.100.1.154/31 IP2=10.100.1.155/31 RSVP=default  ATTR=NA # UP E10.100.1.154  #! 
+#PE1_ge_0/0/1        PE1        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/1 # UP   #! 
+#PE1_ge_0/0/2        PE1        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/2 # UP   #! 
+#PE1_fxp0        PE1        ??? DEF  1     ET100M  MTU=1514 C1=fxp0 # UP   #! 
+#PE1_fxp0.0        PE1        ??? DEF  1     ET100M  MTU=1500 C1=fxp0.0 IP1=172.16.10.101/24 # UP E172.16.10.0  #! 
+#PE1_lo0        PE1        ??? DEF  1   LOOPBACK  C1=lo0 # UP   #! 
+#PE1_lo0.0        PE1        ??? DEF  1   LOOPBACK  ISIS1 ISIS2 C1=lo0.0 IP1=10.100.1.1/32 PASSIVE-A # UP 10.100.1.1  #! 
+#P1_ge_0/0/0         P1        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/0 # UP   #! 
+#P1_ge_0/0/1         P1        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/1 # UP   #! 
+#P1_ge_0/0/2         P1        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/2 # UP   #! 
+#P1_ge_0/0/3         P1        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/3 # UP   #! 
+#P1_ge_0/0/4         P1        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/4 # UP   #! 
+#P1_fxp0         P1        ??? DEF  1     ET100M  MTU=1514 C1=fxp0 # UP   #! 
+#P1_fxp0.0         P1        ??? DEF  1     ET100M  MTU=1500 C1=fxp0.0 IP1=172.16.10.102/24 # UP E172.16.10.0  #! 
+#P1_lo0         P1        ??? DEF  1   LOOPBACK  C1=lo0 # UP   #! 
+#P1_lo0.0         P1        ??? DEF  1   LOOPBACK  ISIS1 ISIS2 C1=lo0.0 IP1=10.100.1.11/32 PASSIVE-A # UP 10.100.1.11  #! 
+#P2_ge_0/0/0         P2        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/0 # UP   #! 
+#P2_ge_0/0/1         P2        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/1 # UP   #! 
+#P2_ge_0/0/2         P2        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/2 # UP   #! 
+#P2_fxp0         P2        ??? DEF  1     ET100M  MTU=1514 C1=fxp0 # UP   #! 
+#P2_fxp0.0         P2        ??? DEF  1     ET100M  MTU=1500 C1=fxp0.0 IP1=172.16.10.103/24 # UP E172.16.10.0  #! 
+#P2_lo0         P2        ??? DEF  1   LOOPBACK  C1=lo0 # UP   #! 
+#P2_lo0.0         P2        ??? DEF  1   LOOPBACK  ISIS1 ISIS2 C1=lo0.0 IP1=10.100.1.12/32 PASSIVE-A # UP 10.100.1.12  #! 
+#P3_ge_0/0/0         P3        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/0 # UP   #! 
+#P3_ge_0/0/1         P3        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/1 # UP   #! 
+#P3_ge_0/0/2         P3        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/2 # UP   #! 
+#P3_ge_0/0/3         P3        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/3 # UP   #! 
+#P3_ge_0/0/4         P3        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/4 # UP   #! 
+#P3_ge_0/0/5         P3        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/5 # UP   #! 
+#P3_fxp0         P3        ??? DEF  1     ET100M  MTU=1514 C1=fxp0 # UP   #! 
+#P3_fxp0.0         P3        ??? DEF  1     ET100M  MTU=1500 C1=fxp0.0 IP1=172.16.10.104/24 # UP E172.16.10.0  #! 
+#P3_lo0         P3        ??? DEF  1   LOOPBACK  C1=lo0 # UP   #! 
+#P3_lo0.0         P3        ??? DEF  1   LOOPBACK  ISIS1 ISIS2 C1=lo0.0 IP1=10.100.1.13/32 PASSIVE-A # UP 10.100.1.13  #! 
+#P4_ge_0/0/0         P4        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/0 # UP   #! 
+#P4_ge_0/0/1         P4        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/1 # UP   #! 
+#P4_ge_0/0/2         P4        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/2 # UP   #! 
+#P4_ge_0/0/3         P4        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/3 # UP   #! 
+#P4_ge_0/0/4         P4        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=1514 C1=ge-0/0/4 # UP   #! 
+#P4_ge_0/0/4.0         P4        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=1500 ISIS1 ISIS2 C1=ge-0/0/4.0 IP1=172.16.11.4/24 PASSIVE-A # UP E172.16.11.0  #! 
+#P4_fxp0         P4        ??? DEF  1     ET100M  MTU=1514 C1=fxp0 # UP   #! 
+#P4_fxp0.0         P4        ??? DEF  1     ET100M  MTU=1500 C1=fxp0.0 IP1=172.16.10.105/24 # UP E172.16.10.0  #! 
+#P4_lo0         P4        ??? DEF  1   LOOPBACK  C1=lo0 # UP   #! 
+#P4_lo0.0         P4        ??? DEF  1   LOOPBACK  ISIS1 ISIS2 C1=lo0.0 IP1=10.100.1.14/32 PASSIVE-A # UP 10.100.1.14  #! 
+#P5_ge_0/0/0         P5        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/0 # UP   #! 
+#P5_ge_0/0/1         P5        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/1 # UP   #! 
+#P5_ge_0/0/2         P5        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/2 # UP   #! 
+#P5_ge_0/0/3         P5        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/3 # UP   #! 
+#P5_fxp0         P5        ??? DEF  1     ET100M  MTU=1514 C1=fxp0 # UP   #! 
+#P5_fxp0.0         P5        ??? DEF  1     ET100M  MTU=1500 C1=fxp0.0 IP1=172.16.10.106/24 # UP E172.16.10.0  #! 
+#P5_lo0         P5        ??? DEF  1   LOOPBACK  C1=lo0 # UP   #! 
+#P5_lo0.0         P5        ??? DEF  1   LOOPBACK  ISIS1 ISIS2 C1=lo0.0 IP1=10.100.1.15/32 PASSIVE-A # UP 10.100.1.15  #! 
+#PE2_ge_0/0/1        PE2        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/1 # UP   #! 
+#PE2_ge_0/0/2        PE2        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/2 # UP   #! 
+#PE2_fxp0        PE2        ??? DEF  1     ET100M  MTU=1514 C1=fxp0 # UP   #! 
+#PE2_fxp0.0        PE2        ??? DEF  1     ET100M  MTU=1500 C1=fxp0.0 IP1=172.16.10.107/24 # UP E172.16.10.0  #! 
+#PE2_lo0        PE2        ??? DEF  1   LOOPBACK  C1=lo0 # UP   #! 
+#PE2_lo0.0        PE2        ??? DEF  1   LOOPBACK  ISIS1 ISIS2 C1=lo0.0 IP1=10.100.1.2/32 PASSIVE-A # UP 10.100.1.2  #! 
+#PE3_ge_0/0/1        PE3        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/1 # UP   #! 
+#PE3_ge_0/0/2        PE3        ??? DEF  1       ET1G  BWA2Z=1.0G  MTU=9000 C1=ge-0/0/2 # UP   #! 
+#PE3_fxp0        PE3        ??? DEF  1     ET100M  MTU=1514 C1=fxp0 # UP   #! 
+#PE3_fxp0.0        PE3        ??? DEF  1     ET100M  MTU=1500 C1=fxp0.0 IP1=172.16.10.108/24 # UP E172.16.10.0  #! 
+#PE3_lo0        PE3        ??? DEF  1   LOOPBACK  C1=lo0 # UP   #! 
+#PE3_lo0.0        PE3        ??? DEF  1   LOOPBACK  ISIS1 ISIS2 C1=lo0.0 IP1=10.100.1.3/32 PASSIVE-A # UP 10.100.1.3  #! 

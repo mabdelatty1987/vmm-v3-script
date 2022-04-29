@@ -1,0 +1,16 @@
+#
+#
+# SRLG/Facility File Import Log
+# Import File: /opt/northstar/data/archives/41552307-621a-48c1-b8b0-0d26da5703d0/facility.new
+#
+#
+##  Software Release= 6.4.0, 64 bits,  Compilation Date= 20210616
+##  Customer= MICRO_SERVICE
+##  Platform=x86_64, OS=Linux 4.15.0-151-generic
+##  Report Date= 2021-9-9 06:11   Runcode=x  User=pcs
+#
+#  SRLG/Facility elements should be specified as node name, link name, or nodename:interfaceName of a link
+#  Juniper's fate sharing group definition is also saved in this file
+# Invalid elements not defined in the network are displayed in this Log file
+#
+Lineno,Facility Name,Type, Invalid Element,Action, Description

@@ -1,0 +1,9 @@
+# this is the freeradius configuration for users
+
+5604.1900.6f55 Auth-Type:= Accept
+                ERX-Service-Activate:1 += "redirDynamic(http://172.16.12.11:8080/portal65ff)"
+5604.1900.61db  Auth-Type:= Accept
+                ERX-Service-Activate:1 += "redirDynamic(http://172.16.12.11:8080/portal61db)"
+DEFAULT         Auth-Type := Accept
+                ERX-Service-Activate:1 += redirStatic
+

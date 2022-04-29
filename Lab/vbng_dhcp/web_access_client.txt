@@ -1,0 +1,4 @@
+URL access to VNC:
+host client1 : http://172.16.11.1:6081/vnc.html
+host client2 : http://172.16.11.1:6082/vnc.html
+host client3 : http://172.16.11.1:6083/vnc.html

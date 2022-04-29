@@ -1,0 +1,111 @@
+---
+name: vbng
+pod: 
+  type: vmm
+  vmmserver: q-pod25-vmm.englab.juniper.net
+  jumpserver: ttqc-shell010.juniper.net
+  user: irzan
+  adpassword: AnaMabokCoy
+  home_dir : /vmm/data/user_disks/irzan
+  ssh_key_name: key1
+  ntp: 172.16.10.1
+images:
+  gw: images/gw.qcow2
+  ubuntu: images/ubuntu-20.04.img
+  desktop: images/desktop.qcow2
+  vmx_re: images/vmx/junos-vmx-x86-64-21.4R1.12.vmdk
+junos_login:
+  login: admin
+  password: pass01
+vm:
+  gw:
+    type: gw
+    os: gw
+    interfaces:
+      em0: 
+        bridge: external
+      em1: 
+        bridge: lan1
+        ipv4: 172.16.11.1/24
+      em2: 
+        bridge: lan2
+        ipv4: 172.16.12.1/24
+        dhcp_range: 172.16.12.5-172.16.12.25
+  radius:
+    type: pcmedium
+    os: ubuntu
+    interfaces:
+      em0: 
+        bridge: lan2
+        ipv4: 172.16.12.10/24 
+        gateway4: 172.16.12.1
+        dns: 172.16.12.1
+  webserver:
+    type: pcmedium
+    os: ubuntu
+    interfaces:
+      em0: 
+        bridge: lan2
+        ipv4: 172.16.12.11/24 
+        gateway4: 172.16.12.1
+        dns: 172.16.12.1
+  client1:
+    type: pcsmall
+    os: desktop
+    vnc: true
+    interfaces:
+      em0: 
+        bridge: client1
+  client2:
+    type: pcsmall
+    os: desktop
+    vnc: true
+    interfaces:
+      em0: 
+        bridge: client2
+  client3:
+    type: pcsmall
+    os: desktop
+    vnc: true
+    interfaces:
+      em0: 
+        bridge: client3
+  vbng:
+    type: junos
+    os: vmx
+    interfaces:
+      mgmt:
+        bridge: lan1
+        ipv4: 172.16.11.11/24 
+      ge-0/0/0:
+        bridge: lan2
+        family:
+          inet: 172.16.12.2/24
+      ge-0/0/1: 
+        bridge: access1
+        mtu: 9000
+      ge-0/0/2: 
+        bridge: access2
+        mtu: 9000
+  access:
+    type: junos
+    os: vmx
+    interfaces:
+      mgmt:
+        bridge: lan1
+        ipv4: 172.16.11.12/24 
+      ge-0/0/0:
+        bridge: access1
+        mtu: 9000
+      ge-0/0/1:
+        bridge: access1
+        mtu: 9000
+      ge-0/0/2: 
+        bridge: client1
+      ge-0/0/3: 
+        bridge: client2
+      ge-0/0/4: 
+        bridge: client3
+
+
+

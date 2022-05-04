@@ -1,5 +1,5 @@
 ---
-name: k8s
+name: cn2
 pod: 
   type: vmm
   #vmmserver: sv8-pod4-vmm.englab.juniper.net
@@ -54,8 +54,11 @@ vm:
         bridge: lan5
         ipv4: 172.16.13.128/31
         mtu: 9000
+        static:
+          - to: 172.16.255.1/32
+            via: 172.16.13.129
   master:
-    type: pcmedium
+    type: pchpv1
     os: ubuntu
     interfaces:
       em0: 
@@ -64,8 +67,15 @@ vm:
         gateway4: 172.16.11.1
         dns: 172.16.11.1
         mtu: 9000
+      em1:
+        bridge: lan2
+        ipv4: 172.16.12.10/24 
+        mtu: 9000
+        static:
+          - to: 172.16.255.1/32
+            via: 172.16.12.1
   node1:
-    type: pchpv2
+    type: pchpv1
     os: ubuntu
     interfaces:
       em0: 
@@ -78,8 +88,11 @@ vm:
         bridge: lan2
         ipv4: 172.16.12.11/24 
         mtu: 9000
+        static:
+          - to: 172.16.255.1/32
+            via: 172.16.12.1
   node2:
-    type: pchpv2
+    type: pchpv1
     os: ubuntu
     interfaces:
       em0: 
@@ -92,8 +105,11 @@ vm:
         bridge: lan2
         ipv4: 172.16.12.12/24 
         mtu: 9000
+        static:
+          - to: 172.16.255.1/32
+            via: 172.16.12.1
   node3:
-    type: pchpv2
+    type: pchpv1
     os: ubuntu
     interfaces:
       em0: 
@@ -106,6 +122,9 @@ vm:
         bridge: lan2
         ipv4: 172.16.12.13/24 
         mtu: 9000
+        static:
+          - to: 172.16.255.1/32
+            via: 172.16.12.1
   node4:
     type: pcmedium
     os: ubuntu
@@ -132,16 +151,6 @@ vm:
         dns: 172.16.14.1
       em1: 
         bridge: ds
-  deployer:
-    type: pcmedium
-    os: ubuntu
-    vnc: true
-    interfaces:
-      em0: 
-        bridge: lan1
-        ipv4: 172.16.11.15/24 
-        gateway4: 172.16.11.1
-        dns: 172.16.11.1
   sdngw:
     type: junos
     os: mx240

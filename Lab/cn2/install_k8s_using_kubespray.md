@@ -62,19 +62,22 @@
         calico_rr
 
 6. Verify that on file /etc/hosts, entries for kubernetes nodes are there.
-7. Verify that you can access master, node1, node2, and node3 without using password
+7. Verify that from node registry, it can access master, node1, node2, and node3 without using password
 
         ssh master
         ssh node1
 
 7. Edit file k8s-cluster.yml to change the default configuration
 
-        vi inventory/mycluster/group_vars/k8s_cluster/k8s-cluster.ym
+        vi inventory/mycluster/group_vars/k8s_cluster/k8s-cluster.yml
 
         container_manager: crio
         etcd_deployment_type: host
         kubelet_deployment_type: host
+        enable_nodelocaldns: false
+        enable_dual_stack_networks: true
         kube_network_plugin: cni   ## this is to set kubernetes cluster to generic CNI configuration, so CN2 can be installed later.
+        kube_version: v1.22.3
 
 ## install kubernetes cluster
 
@@ -92,31 +95,30 @@
 
 3. On the master node, verify that k8s cluster is running, but the nodes status is NOTREADY
 
-        
+        ubuntu@master:~$ kubectl get nodes
+        NAME     STATUS     ROLES                  AGE     VERSION
+        master   NotReady   control-plane,master   3m59s   v1.22.3
+        node1    NotReady   <none>                 2m52s   v1.22.3
+        node2    NotReady   <none>                 2m52s   v1.22.3
+        node3    NotReady   <none>                 2m52s   v1.22.3
         ubuntu@master:~$ kubectl get pods -A
         NAMESPACE     NAME                              READY   STATUS    RESTARTS      AGE
-        kube-system   coredns-76b4fb4578-x6hvv          0/1     Pending   0             2m31s
-        kube-system   dns-autoscaler-7979fb6659-tld7p   0/1     Pending   0             2m27s
-        kube-system   kube-apiserver-master             1/1     Running   1             4m22s
-        kube-system   kube-controller-manager-master    1/1     Running   2 (95s ago)   4m30s
-        kube-system   kube-proxy-87dl5                  1/1     Running   0             3m18s
-        kube-system   kube-proxy-mbst8                  1/1     Running   0             3m19s
-        kube-system   kube-proxy-mzhwm                  1/1     Running   0             3m18s
-        kube-system   kube-proxy-rlqfk                  1/1     Running   0             3m19s
-        kube-system   kube-scheduler-master             1/1     Running   2 (95s ago)   4m22s
-        kube-system   nginx-proxy-node1                 1/1     Running   0             3m21s
-        kube-system   nginx-proxy-node2                 1/1     Running   0             3m21s
-        kube-system   nginx-proxy-node3                 1/1     Running   0             3m21s
-        kube-system   nodelocaldns-4bfwn                1/1     Running   0             2m26s
-        kube-system   nodelocaldns-cn77q                1/1     Running   0             2m26s
-        kube-system   nodelocaldns-dvjgn                1/1     Running   0             2m26s
-        kube-system   nodelocaldns-j6dfg                1/1     Running   0             2m26s
-        ubuntu@master:~$ kubectl get nodes 
-        NAME     STATUS     ROLES                  AGE     VERSION
-        master   NotReady   control-plane,master   4m53s   v1.23.6
-        node1    NotReady   <none>                 3m43s   v1.23.6
-        node2    NotReady   <none>                 3m43s   v1.23.6
-        node3    NotReady   <none>                 3m43s   v1.23.6
+        kube-system   coredns-8474476ff8-nwglz          0/1     Pending   0             2m24s
+        kube-system   dns-autoscaler-5ffdc7f89d-w675s   0/1     Pending   0             2m20s
+        kube-system   kube-apiserver-master             1/1     Running   1             4m11s
+        kube-system   kube-controller-manager-master    1/1     Running   2 (88s ago)   4m11s
+        kube-system   kube-proxy-d9rn8                  1/1     Running   0             3m10s
+        kube-system   kube-proxy-j97lz                  1/1     Running   0             3m10s
+        kube-system   kube-proxy-mrz7j                  1/1     Running   0             3m10s
+        kube-system   kube-proxy-wddwh                  1/1     Running   0             3m10s
+        kube-system   kube-scheduler-master             1/1     Running   2 (88s ago)   4m11s
+        kube-system   nginx-proxy-node1                 1/1     Running   0             3m12s
+        kube-system   nginx-proxy-node2                 1/1     Running   0             3m12s
+        kube-system   nginx-proxy-node3                 1/1     Running   0             3m12s
+        kube-system   nodelocaldns-69j86                1/1     Running   0             2m19s
+        kube-system   nodelocaldns-bblwq                1/1     Running   0             2m19s
+        kube-system   nodelocaldns-cn5t9                1/1     Running   0             2m19s
+        kube-system   nodelocaldns-qgj48                1/1     Running   0             2m19s
         ubuntu@master:~$ 
 
 

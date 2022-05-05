@@ -2,7 +2,7 @@
 
 1. upload file [install_crio.sh](install_crio.sh) into node **registry**
 
-        scp install_container.sh registry:~/
+        scp install_crio.sh registry:~/
 
 2. ssh into node **registry**, and update the base OS 
 

@@ -63,13 +63,24 @@ by the time this document is written, the official documentation on how to insta
 ## kubernetes cluster installation.
 
 There are two options to install kubernetes cluster
-- option 1 : using kubeadm. Please refer to this [document](install_k8s_using_kubeadm.md) on how to install kubernetes cluster using kubeadm
-- option 2 : using kubespray. Please refer to this [document](install_k8s_using_kubespray.md) on how to install kubernetes cluster using kubespray
+- option 1 : using kubeadm
+  
+  With this method, kubernetes cluster installation will be done manually using kubeadm on each nodes (master and worker nodes).
+  
+  Please refer to this [document](install_k8s_using_kubeadm.md) on how to install kubernetes cluster using kubeadm
+
+- option 2 : using kubespray
+
+  With this method, ansible playbook will be used to automate kubernetes installation.
+
+  Please refer to this [document](install_k8s_using_kubespray.md) on how to install kubernetes cluster using kubespray.
 
 ## Installing CN2 into kubernetes cluster
 please refer to [this document](cn2_installation.md) on how to install CN2 into kubernetes cluster
 
-## Installing private registry
+## Installing private local registry
+
+If you want to use local registry, then you can install private local registry, so you don't have to use public registry such as quay.io or hub.docker.com
 
 please refer to [this document](private_registry_installation.md) on how to install local private registry
 

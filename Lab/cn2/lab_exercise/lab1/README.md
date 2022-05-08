@@ -52,33 +52,18 @@ k8s manifest: [lab1_nodeport.yaml](lab1_nodeport.yaml)
 
 ## configure bgp peer to the SDN Gateway on contrail controller
 
-To configure BGP peer the SDN gateway 
-
-        curl http://<contrail_controller>:8082/bgp-routers | python3 -m json.tool
-        sdngw_config/create_bgp_router.py
-        curl http://<contrail_controller>:8082/bgp-routers | python3 -m json.tool
-
-the script to configure BGP peer on contrail [sdngw_config/create_bgp_router.py](sdngw_config/create_bgp_router.py)
-        
-configuration of SDN gateway : [sdngw.conf](sdngw_config/sdngw.conf)
-
-configuration of FRR running on node **GW** : [bgpd.conf](sdngw_config/bgpd.conf)
+## WORK in PROGRESS
 
 ## create virtual network 
 
-        kubectl apply -f vn-public.yaml
-        curl http://<contrail_controller>:8082/virtual-networks | python3 -m json.tool
+## WORK in PROGRESS
 
 k8s manifest : [vn-public.yaml](vn-public.yaml)
 
 ## on contrail, configure route target (export/import) and floating ip pools
 
-        ../config_lab.py set_rt -c lab1_contrail.yaml
-        curl http://<contrail_controller>:8082/virtual-networks | python3 -m json.tool
 
-script to configure route target (export and import) and floating ip pools on contrail : [config_lab.py](../config_lab.py)
-
-configuration file for the script : [lab1_contrail.yaml](lab1_contrail.yaml)
+## WORK in PROGRESS
 
 ## create deployment and load balancer
 

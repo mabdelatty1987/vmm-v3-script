@@ -1,4 +1,7 @@
-# Installing kubernetes and CN2 early release
+# Installing kubernetes and CN2 early release 
+# This document is no longer valid since CN2 has been officially GA.
+# this document is keep as reference only.
+
 ## Introduction 
 
 This document provide guide on how to install kubernetes and CN2 (cloud native contrail networking) early release
@@ -243,3 +246,5 @@ Screenshot recording for these steps, can be found [here](https://asciinema.org/
         helm install analytics <filename> -n contrail --create-namespace --set contrail-collector.install=false --set contrail-dashboard.install=false --set contrail-introspect.install=false --set contrail-portal.install=false --set elasticsearch.install=false --set fluent-bit.install=false --set fluentd.install=false --set influxdb2.install=false --set kibana.install=false --set grafana.install=false 
 
         helm install analytics /Users/irzan/Downloads/contrail-analytics-0.1.0-revb334dbc8b.tgz -n contrail --create-namespace --set contrail-collector.install=false --set contrail-dashboard.install=false --set contrail-introspect.install=false --set contrail-portal.install=false --set elasticsearch.install=false --set fluent-bit.install=false --set fluentd.install=false --set influxdb2.install=false --set kibana.install=false --set grafana.install=false 
+
+

@@ -1,15 +1,14 @@
-# This directory contain the scripts/yaml file required for the lab exercise
-
-## Video recording 
+# This directory contain the scripts/yaml file required for the lab exercise 
+# UNDER HEAVY CONSTRUCTION
 
 Video recording of the lab can be found [here]()
 
 
 ## Lab exercises
 
-[Lab 0](lab0/creating_private_registry.md)
+[Lab 0](lab0/creating_OCI_compliant_image.md)
 
-    - Installing private registry
+    - Creating OCI compliant container image and push it into private local registry
 
 [Lab 1](lab1/README.md) 
 

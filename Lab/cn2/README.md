@@ -1,4 +1,4 @@
-# Installing kubernetes and CN2 (Contrail network cloud networking) (Under heavy construction)
+# Installing kubernetes and CN2 (Cloud native Contrail networking) (Under heavy construction)
 ## Introduction 
 
 This document provide guide on how to install kubernetes and contrail networking.

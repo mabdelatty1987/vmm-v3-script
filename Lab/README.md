@@ -9,8 +9,7 @@ The following are different lab scenario in the VMM that can be deployed using t
 5. [Running vmware lab](vmware/README.md)
 6. [Running Openstack with Contrail networking ](openstack_with_contrail/README.md)
 7. [Running vBNG ](vbng/README.md)
-
-~8. [Running CN2 (Cloud native Cloud networking) CN2 early release ](cn2-early/README.md)~
+8. ~[Running CN2 (Cloud native Cloud networking) CN2 early release ](cn2-early/README.md)~
 9. [Running vmx as WAG ](vbng_dhcp/README.md)
 10. [Running Paragon Active Assurance](paa/README.md)
 11. [Running SD-WAN using 128T](128T/README.md)

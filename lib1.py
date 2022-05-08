@@ -883,8 +883,8 @@ def set_host(d1):
 								line_to_file += ['          via: {}'.format(k['via'])]
 								line_to_file += ['          metric: 1']
 			line_to_file += ['" | sudo tee /etc/netplan/01_net.yaml']
-			line_to_file +=	['sudo sed -i -e "s/#DNS=/DNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns1)]
-			line_to_file +=	['sudo sed -i -e "s/#FallbackDNS=/FallbackDNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns2)]
+			#line_to_file +=	['sudo sed -i -e "s/#DNS=/DNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns1)]
+			#line_to_file +=	['sudo sed -i -e "s/#FallbackDNS=/FallbackDNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns2)]
 			line_to_file += ['uuidgen  | sed -e \'s/-//g\' | sudo tee /etc/machine-id']
 		elif d1['vm'][i]['os'] == 'desktop':
 			status=False
@@ -918,8 +918,9 @@ def set_host(d1):
 								line_to_file += ['          via: {}'.format(k['via'])]
 								line_to_file += ['          metric: 1']
 				line_to_file += ['" | sudo tee /etc/netplan/01_net.yaml']
-				line_to_file +=	['sudo sed -i -e "s/#DNS=/DNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns1)]
-				line_to_file +=	['sudo sed -i -e "s/#FallbackDNS=/FallbackDNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns2)]
+				#line_to_file +=	['sudo sed -i -e "s/#DNS=/DNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns1)]
+				#line_to_file +=	['sudo sed -i -e "s/#FallbackDNS=/FallbackDNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns2)]
+				line_to_file += ['uuidgen  | sed -e \'s/-//g\' | sudo tee /etc/machine-id']
 		elif d1['vm'][i]['os'] == 'centos':
 			for j in intf.keys():
 				#line_to_file +=	['sudo rm /etc/sysconfig/network-scripts/ifcfg-{}'.format(j.replace("em","eth"))]
@@ -1627,6 +1628,7 @@ def write_junos_config(d1):
 				dummy1['mgmt_ip']=d1['vm'][i]['interfaces']['mgmt']['ipv4']
 				dummy1['interfaces']=None
 				dummy1['protocols']=None
+				#dummy1['static']=[]
 				dummy1['rpm']={}
 				if 'bgpls' in d1['vm'][i].keys():
 					dummy1['bgpls']={'as' : d1['vm'][i]['bgpls']['as'],'local' : d1['vm'][i]['bgpls']['local']}
@@ -1672,6 +1674,13 @@ def write_junos_config(d1):
 							src = d1['vm'][i]['interfaces'][j]['rpm']['source']
 							dst = d1['vm'][i]['interfaces'][j]['rpm']['destination']
 							dummy1['rpm'].update({intf : { 'src': src, 'dst': dst }})
+						#if 'static' in d1['vm'][i]['interfaces'][j].keys():
+						#	for k in d1['vm'][i]['interfaces'][j]['static']:
+						#		d1['vm'][i]['interfaces'][j]['static'].append(
+						#			{'to': k['to'], 'via':k['via']}
+						#		)
+						#	add_into_route_options_static(dummy1,)
+
 				# pprint.pprint(dummy1)
 				config1=Template(jt).render(dummy1)
 				f1=param1.tmp_dir + i + ".conf"

@@ -3,29 +3,24 @@
 
 This document provide guide on how to install kubernetes and contrail networking.
 
-There are two options to install kubernetes cluster
-- option 1: using Kubeadm
-- option 2: using kubespray
-
 it is based on CN2 (cloud native contrail networking) [version 22.1](https://www.juniper.net/documentation/us/en/software/cn-cloud-native22/release-notes/22.1/cn-cloud-native-release-notes-22.1/topics/concept/cn-cloud-native-22.1-supported-platforms.html)
 
+by the time this document is written, the official documentation on how to install CN2 with kubernetes cluster is not yet available, but the pre-released document can be found [here](https://uat.juniper.net/documentation/test/us/en/software/cn-cloud-native/cn-cloud-native-k8s-install-and-lcm/cn-cloud-native-k8s-install-and-lcm.pdf)
 
 
 ## Topology
 ![topology](images/topology.png)
 
 ## Devices in the lab
-- VMX: SDNGW , SDN gateway 
+- VMX: SDNGW/SDN gateway 
 
 - kubernetes cluster :
-
-        * master node: master
-        * worker nodes: node1, node2, node3
-        * NFS share for shared storage : node4
+  - master node: master
+  - worker nodes: node1, node2, node3
+  - NFS share for shared storage : node4
 
 - External node:
-
-        * registry : it will be used as private registry, external server, and kubespray node
+  - registry : it will be used as private registry, external server, and kubespray node
 
 ## To create the lab topology and initial configuration of VMs
 1. Go to directory [cn2](./)
@@ -42,7 +37,7 @@ it is based on CN2 (cloud native contrail networking) [version 22.1](https://www
         ../../vmm.py upload  <-- to create the topology file and the configuration for the VMs and upload them into vmm server
         ../../vmm.py start   <-- to start the topology in the vmm server
 
-5. Add the content of file [tmp/ssh_config](tmp/ssh_config) into your ssh config file, ${HOME}/.ssh/config. If you have run the previous lab, please remove entries on file ${HOME}/.ssh/config from the previous lab (Any entries after "### the following lines are added by vmm-v3-script" must be deleted)
+5. Add the content of file [tmp/ssh_config](tmp/ssh_config) into your ssh config file,`~/.ssh/config`. If you have run the previous lab, please remove entries on file `~/.ssh/config` from the previous lab (Any entries after "### the following lines are added by vmm-v3-script" must be deleted)
 
         cat tmp/ssh_config >> ~/.ssh/config
 
@@ -76,104 +71,14 @@ please refer to [this document](cn2_installation.md) on how to install CN2 into 
 
 ## Installing private registry
 
-please refer to [this document](private_registry_installation.md) on how to install CN2 into kubernetes cluster
+please refer to [this document](private_registry_installation.md) on how to install local private registry
 
+## How to setup kubectl over ssh tunnel
 
-## Accessing Web Interface of Contrail Networking dashboard
+Please refer to [this document](kubectl_over_ssh.md) on how to setup kubectl over ssh tunnel
 
-1. From your workstation, open ssh session to node **proxy** and keep this session open if you need to access the web dashboard of Paragon Automation platform
+## Lab Exercise
 
-        ssh proxy 
-
-2. If you are using Firefox as web browser, set proxy with the following parameters
-    - manual proxy configuration
-    - SOCKS host : 127.0.0.1
-    - PORT : 1080
-    - type: SOCKS v4    
-    ![firefox_proxy](images/firefox_proxy.png)
-
-3. If you are using Chrome as web browser, install extension Foxy Proxy and configure it with the following parameters
-    - manual proxy configuration
-    - SOCKS host : 127.0.0.1
-    - PORT : 1080
-    - type: SOCKS v4    
-    ![chrome_proxy1](images/chrome_proxy1.png)
-    ![chrome_proxy2](images/chrome_proxy2.png)
-
-4. Open http session to https://172.16.11.10:8143, and login using default credential, user/password: admin/contrail123  
-5. On chrome, if you find this page, click **advance** and type **thisisunsafe** to bypass chrome's security check
- ![web1](images/web1.png) 
- ![web2](images/web2.png) 
- 
-
-
-### How to set kubectl over sock5 https proxy
-1. on your workstation set environment variable https_proxy
-
-        export https_proxy=socks5://127.0.0.1:1080
-
-2. open ssh session to node **proxy**
-
-        ssh -f -N proxy 
-
-3. copy kubectl **config** file from master node, and copy it to the local file
-
-        scp master:~/.kube/config ~/.kube/config
-
-4. use the **kubectl** command from your local workstation 
-
-        kubectl <command>
-
-## How to set kubectl over ssh tunnel
-Information on how to set kubectl over ssh, can be found here [reference](https://blog.scottlowe.org/2019/07/30/adding-a-name-to-kubernetes-api-server-certificate/)
-
-1. on Master, run 
-
-        kubectl -n kube-system get configmap kubeadm-config -o jsonpath='{.data.ClusterConfiguration}' > kubeadm.yaml
-2. edit file kubeadmin, under **apiServer:** add the following:
-
-        apiServer:
-                certSANs:
-                - "127.0.0.1"
-                - "172.16.11.10"
-                - "10.96.0.1"
-
-3. Move the existing API server certificate to different directory
-
-        mkdir ~/certs
-        sudo mv /etc/kubernetes/pki/apiserver.{crt,key} ./certs
-
-4. run kubedm to just generate a new certificate
-
-        sudo kubeadm init phase certs apiserver --config kubeadm.yaml
-
-5. Restart the API server container :
-    - run **sudo docker ps | grep kube-apiserver | grep -v pause** to get the containerID of the kubernetes API server
-    - run **sudo docker kill <containerID>** to restart it.
-
-6. copy kubectl config from node **master** to your local workstation
-
-        mkdir ~/.kube
-        scp master:~/.kube/config ~/.kube/config
-        
-7. On your workstation, edit file ~/.kube/config. Change the URL from https://172.16.11.10:6443 to https://127.0.0.1:6443
-
- ![edit_config](images/edit_config.png)
-
-7. Open ssh session with port forwarding on 6443 to node **master** (and keep the session alive)
-
-        ssh -L 6443:127.0.0.1:6443 master
-
-8. Install kubectl on your workstation, and test kubectl command
-
-        kubectl get nodes
-        kubectl get pods --all-namespaces
-
- ![getnodes2](images/getnodes2.png)
- ![getpods2](images/getpods2.png)
-
-9. Now you can run kubectl on your workstation to access the kubernetes cluster in the lab.
-
-10. For lab exercise, you can follow the following [this lab guide](lab_exercise/README.md)
+Please refer to [this document](lab_exercise/README.md) on various lab exercise that can be done on the k8s + CN2 lab.
 
 

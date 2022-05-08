@@ -166,6 +166,9 @@ vm:
         family:
           inet: 172.16.13.129/31
         mtu: 9000
+        static:
+          - to: 172.16.11.0/24
+            via: 172.16.13.128
       ge-0/0/1: 
         bridge: lan3
         family:

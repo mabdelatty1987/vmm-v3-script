@@ -327,8 +327,8 @@ data:
     spec:
       agent:
         virtualHostInterface:
-          # gateway: 172.16.12.1
-          physicalInterface: eth1
+          gateway: 172.16.12.1
+          # physicalInterface: eth1
       common:
         imagePullSecrets:
           - name: registrypullsecret
@@ -355,8 +355,8 @@ data:
     spec:
       agent:
         virtualHostInterface:
-          # gateway: 172.16.12.1
-          physicalInterface: eth1
+          gateway: 172.16.12.1
+          #physicalInterface: eth1
       common:
         affinity:
           nodeAffinity:

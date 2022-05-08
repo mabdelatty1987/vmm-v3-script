@@ -25,6 +25,7 @@
 
 8. edit file sudo vi /etc/ssl/openssl.cnf and add the following 
 
+        sudo vi /etc/ssl/openssl.cnf
         [ v3_ca ]
         subjectAltName=IP:172.16.14.10
         # 172.16.14.10 is the ip address of VM registry. If the VM is using different IP address, then set it accordingly
@@ -65,10 +66,13 @@
         REGISTRY_IP=172.16.14.10
         for i in master node{1..3}
         do
-            scp certs/registry.crt ${i}:~/
-            ssh ${i} "sudo mkdir  -p /etc/containers/certs.d/${REGISTRY_IP}:5000; sudo cp ~/registry.crt /etc/containers/certs.d/${REGISTRY_IP}:5000/ca.crt" 
+                scp certs/registry.crt ${i}:~/
+                ssh ${i} "sudo mkdir  -p /etc/containers/certs.d/${REGISTRY_IP}:5000; sudo cp ~/registry.crt /etc/containers/certs.d/${REGISTRY_IP}:5000/ca.crt" 
         done
 
+
+        scp copy_cert.sh registry:~/registry/
+        
 
 ## running registry container as service
 1. run the following script to create systemd's registry service
@@ -90,7 +94,6 @@
 1. On node **registry**, create directory ~/container
 
         mkdir -p ~/container
-        scp 
 
 2. Upload  file webserver.tgz into node **registry**
 

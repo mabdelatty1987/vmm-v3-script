@@ -14,4 +14,4 @@ The following are different lab scenario in the VMM that can be deployed using t
 10. [Running Paragon Active Assurance](paa/README.md)
 11. [Running SD-WAN using 128T](128T/README.md)
 12. [Installing Openstack  + Contrail networking  with juju](openstack_with_juju/README.md)
-13. [Running CN2 (Cloud native Cloud networking) CN2 GA Release ](cn2/README.md) (under heavy construction)
+13. [Running CN2 (Cloud native Contrail networking) + K8S ](cn2/README.md) (under heavy construction)

@@ -11,7 +11,6 @@ The following are different lab scenario in the VMM that can be deployed using t
 7. [Running vBNG ](vbng/README.md)
 
 ~8. [Running CN2 (Cloud native Cloud networking) CN2 early release ](cn2-early/README.md)~
-
 9. [Running vmx as WAG ](vbng_dhcp/README.md)
 10. [Running Paragon Active Assurance](paa/README.md)
 11. [Running SD-WAN using 128T](128T/README.md)

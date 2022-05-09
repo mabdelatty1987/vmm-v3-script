@@ -22,7 +22,7 @@ Information on how to set kubectl over ssh, can be found here [reference](https:
            certSANs:
            - "127.0.0.1"
            - "172.16.12.10"
-           - "10.96.0.1"
+           - "10.96.0.1" or "10.233.0.1" # Depend on the serviceSubnet configured on the k8s cluster
 
 3. Move the existing API server certificate to different directory
 

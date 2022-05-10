@@ -75,9 +75,9 @@ There are two options to install kubernetes cluster
 
   Please refer to this [document](install_k8s_using_kubespray.md) on how to install kubernetes cluster using kubespray.
 
-  kubespray is using some container image, such as nginx, which is hosted on hub.docker.com, and as you know, Mirantis (As the owner docker.com) has put rate limit to free access to hub.docker.com. So when you have reach the maximum limit, then kubernetes deployment using kubespray may fail, and you may have to wait for 24 hours before doing another deployment.
+  kubespray is using some container images, such as nginx, which is hosted on hub.docker.com, and as you know, Mirantis (As the owner docker.com) has put rate limit to free access to hub.docker.com. So when you have reach the maximum limit, then kubernetes deployment using kubespray may fail, and you may have to wait for 24 hours before doing another deployment.
 
-  so far, I haven't figure out on how to use authenticated access to hub.docker.com for kubespray. once I know, I'll update the documentation.
+  so far, I haven't been able to figure out on how to use authenticated access to hub.docker.com for kubespray. once I know, I'll update the documentation.
 
 ## Installing CN2 into kubernetes cluster
 please refer to [this document](cn2_installation.md) on how to install CN2 into kubernetes cluster

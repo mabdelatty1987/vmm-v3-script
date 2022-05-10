@@ -6,16 +6,17 @@ Video recording of the lab can be found [here]()
 
 ## Lab exercises
 
-[Lab 0](lab0/creating_OCI_compliant_image.md)
+[Lab 0](lab0/README.md)
 
     - Creating OCI compliant container image and push it into private local registry
 
 [Lab 1](lab1/README.md) 
 
-    - configuring SDN Gateway (vMX/MX)
     - deploying pods 
     - deploying multi-container pods
-    - deploying services with node port
+    - deploying services with nodeport
+    - configuring SDN Gateway (vMX/MX)
+    - Create virtual network for floating ip
     - deploying services with load balancer
     - deploying services with ingress
 

@@ -6,7 +6,7 @@ pod:
   #jumpserver: ttsv-shell110.juniper.net
   vmmserver: q-pod25-vmm.englab.juniper.net
   # the following entry can be commented out if your account can access vmm without using jump host
-  #jumpserver: ttqc-shell010.juniper.net
+  jumpserver: ttqc-shell010.juniper.net
   user: irzan
   unixpassword:  NotUsedAnymore
   adpassword:  MyBook

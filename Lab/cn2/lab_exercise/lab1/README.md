@@ -1,99 +1,271 @@
 # Lab 1
 
-##  create pods
+##  Deploying pods
+In this exercise, multiple independent pods will be deployed to multiple worker node.
 
-To create pod
+The manifest file used with this lab exercise is [lab1_client.yaml](lab1_client1.yaml)
+
+### Steps
+1. Deploy pods using manifest file
 
         kubectl apply -f lab1_client.yaml
 
-k8s manifest : [lab1_client.yaml](lab1_client.yaml)
-
-to verify 
+2. Verify that pods has been deployed on multiple worker node
 
         kubectl get pods -o wide
-        kubectl exec -it <pod_name> -- sh
 
-## create pod with multiple container
+3. Access one of the pod, for example client1 using kubectl exec 
 
-To create pod with multiple containers. Note it will fail because both container are running service on the same TCP port 
+        kubectl exec -it client1 -- sh
 
-        kubectl apply -f lab1_pod0.yaml
-        kubectl get pods 
-        kubectl describe pod <pod_name>
+4. Verify that from pod **client1** it can reach other pod (client2 and client3)
 
-k8s manifest: [lab1_pod0.yaml](lab1_pod0.yaml)
+![lab1_client1.png](images/lab1_client1.png)
 
-Run another pod with multile containers, but the 2nd container is configured to run a modified script to run the services on different TCP Port.
+5. verify that from pod **client1**, it can reach internet, for example ping to  8.8.8.8 or open ssh session to 172.16.14.10. This is to verify that vrouter is doing SNAT for traffic from the pods
 
-        upload the script to the nfs server, and modify the port number from 80 to 8080
+        ping 8.8.8.8
+        ping 172.16.14.10
+        ssh ubuntu@172.16.14.10
+
+![lab1_client2.png](images/lab1_client2.png)
+![lab1_client3.png](images/lab1_client3.png)
+
+## Deploying multi-container pods
+
+In this exercise, a pod with multiple container will be created, and we are going to take a look on the requirement of multiple container pod
+
+### exercise 1
+1. Deploy a pod with multiple container using manifest file [lab1_pod0.yaml](lab1_pod0.yaml). A pod called `pod0` will be created and it has two container `c1` and `c2`, and both container are running the same image.
+
+        kubectll apply -f lab1_pod0.yaml
+
+2. Check the status of the pod, and you will notice that for pod0 the status is Error or CrashLoopBackOff and from kubectl describe pods pod0, the state of one of the container is `Waiting` because of CrashLoopBackOff
+
+        kubectl get pods
+        kubectl describe pods pod0
+
+![lab1_pod0_1.png](images/lab1_pod0_1.png)
+![lab1_pod0_2.png](images/lab1_pod0_2.png)
+
+It happens because both container, c1 and c2 are running the same code, which start http services on TCP port 80, and since both container are sharing the network (Because they are running on the same pod), then one of the service will crash.
+
+### exercise 2
+1. In this exercise, we are going to run another pod with multiple container, but we are going to used different image.
+2. first, we are going to create another image
+3. From your workstation, open ssh session into node `registry` and enter directory `webserver`
+
+        ssh registry
+        cd webserver
+4. inside directory webserver, you will find the python scrypt webserver.py, and by default it use port 80
+![webserver1.png](images/webserver1.png)
+5. We are going to create a new container image, running tcp service on different port, for example 8080
+6. Edit file `webserver.py`, and change `port=80` to `port=8080`
+
+        cat webserver.py | grep port=80
+        sed -i -e 's/port=80/port=8080/' webserver.py
+![webserver3.png](images/webserver3.png)
+7. Create a new container image using `podman build`, and the new image will be called webserver8080:0.1
+
+        podman image ls
+        podman build -t 172.16.14.10:5000/webserver8080:0.1 .
+        podman image ls
+
+![webserver2.png](images/webserver2.png)
+8. Push the new container image into local private repository
+
+        podman push 172.16.14.10:5000/webserver8080:0.1 
+
+9. Verify that the new container image has been push into local private repository
+
+        curl -k https://172.16.14.10:5000/v2/_catalog
+        curl -k https://172.16.14.10:5000/v2/webserver8080/tags/list
+![webserver4.png](images/webserver4.png)
+
+10. Deploy another multiple container pod using manifest file [lab1_pod1.yaml](lab1_pod1.yaml), and verify that that pod `pod1` status is `RUNNING`
 
         kubectl apply -f lab1_pod1.yaml
         kubectl get pods
-        kubectl des ribe pod <pod_name>
+        kubectl describe pods pod1
 
-k8s manifest: [lab1_pod1.yaml](lab1_pod1.yaml)
+![pod1_stat](images/pod1stat.png)
 
-script running on container : [webserver.py](../container/webserver/webserver.py). Edit it, to modify port 80 to 8080 (line 72)
+11. Access container c1 on pod1 and verify its network configuration, after that access container c2 on pod1 and verify its network configuration. Container c1 and c2 will have the same network configuration
+
+![pod1_stat2](images/pod1stat2.png)
+
+12. From pod `client1`, test connectivity to pod `pod1` on tcp port 80 and tcp port 8080
+![pod1_stat3](images/pod1stat3.png)
 
 
-##  create deployment and nodeport
+### exercise 3
+1. In this exercise, we are going to run another pod with multiple container, both container will run the same image, but the 2nd container will run the script from another storage, in this case run the script from nfs
+2. Before deploying the pod, verify that nfs client is installed on worker node. if nfs client is not install, install it first
 
-To create deployment and nodeport
+        ssh node1 "sudo apt -y install nfs-client"
+        ssh node2 "sudo apt -y install nfs-client"
+        ssh node3 "sudo apt -y install nfs-client"
+3. open ssh session into nfs server (`node4`) and verify that nfs server has been enabled and the nfs share has beed configured. if nfs server and nfs share are not configured, upload script [upgrade_node4.sh](../../upgrade_node4.sh) to `node4` and run it to install nfs server and create the nfs share. The script will reboot `node4`
+4. From node `registry`, upload script `webserver.py` into `node4`, put it on nfs share directory `/media/nfsshare/webserver`, and set the mode for file /media/nfsshare/webserver/webserver.py to rx for user, group, and other
 
-        kubectl apply -f lab1_nodeport.yaml
+        ssh registry
+        scp webserver/webserver.py node4:~/
+        ssh node4 
+        sudo cp webserver.py /media/nfsshare/webserver
+        sudo chmod ugo+rx /media/nfsshare/webserver/webserver.py
+
+
+5. On `node4`, verify that file `/media/nfsshare/webserver/webserver.py` is using port 8080 for its service
+
+![node4.png](images/node4.png)
+
+6. Deploy another multiple container pod using manifest file [lab1_pod2.yaml](lab1_pod2.yaml). This manifest will create a pod with two container, both container will run the same image, but one of the container, container `c2` will run the script from the nfs storage, where we have stored the modified script that run services on TCP port 8080, instead of TCP port 80
+
+7. verify that that pod `pod2` status is `RUNNING`
+
+        kubectl apply -f lab1_pod2.yaml
+        kubectl get pods
+        kubectl describe pods pod2
+
+8. From pod `client1`, test connectivity to pod `pod2` on tcp port 80 and tcp port 8080
+![pod2_stat](images/pod2stat.png)
+
+
+## Deploying services with nodeport
+
+In this exercise, services with nodeport will be deployed on kubernetes cluster.
+
+1. Deploy services with nodeport using manifest file [lab1_nodeport.yaml](lab1_nodeport.yaml)
+2. Verify that pods, services and nodeport has been deployed
+
         kubectl get pods -o wide
         kubectl get services
 
-to verify, from node **gw** initial curl request to the worker's node ip address and the port specified on the services
+![nodeport1.png](images/nodeport1.png)
+3. From node `registry`, send curl request to the ip address of the worker nodes (172.16.12.11, 172.16.12.12, or 172.16.12.13) on port 32001, to verify that services is accessible from external
 
-        curl http://<worker_node_ip>:<port>
+        ssh registry 
+        curl http://172.16.12.11:32001
 
-k8s manifest: [lab1_nodeport.yaml](lab1_nodeport.yaml)
+![nodeport2.png](images/nodeport2.png)
 
-## configure bgp peer to the SDN Gateway on contrail controller
+4. Upload script [hit_url.py](hit_url.py) to node `registry`, and run it to send multiple http request. By default it will generate 300 request, and at the end of the script, it will show the number of request being handled by the backend pods
 
-## WORK in PROGRESS
+        scp hit_url.py registry
+        ssh registry
+        ./hit_url.py target=172.16.12.11 port=32001 
+        ./hit_url.py target=172.16.12.11 port=32001 count=999
 
-## create virtual network 
-
-## WORK in PROGRESS
-
-k8s manifest : [vn-public.yaml](vn-public.yaml)
-
-## on contrail, configure route target (export/import) and floating ip pools
+![nodeport3a.png](images/nodeport3a.png)
+![nodeport3b.png](images/nodeport3b.png)
+![nodeport3c.png](images/nodeport3c.png)
 
 
-## WORK in PROGRESS
+## configuring SDN Gateway (vMX/MX)
 
-## create deployment and load balancer
+There will be two configuration :
+- SDN Gateway configuration 
+- BGP Router configuration on contrail controller
 
-to create deployment and load balancer 
+### SDN gateway configuration
+1. n this lab exercise, Juniper MX/vMX will be used as SDN Gateway.
 
-        kubectl apply -f lab1_lb.yaml
-        kubectl get pods
-        kubectl get services
+2. The configuration of vMX as SDN gateway is this [file](sdngw.conf). Upload this file to node `sdngw` and apply it 
 
-k8s manifest to create deployment and load balancer : [lab1_lb.yaml](lab1_lb.yaml)
+        scp sdngw.conf sdngw:~/
+        ssh sdngw.conf
+        edit 
+        load merge relative sdngw.conf 
+        commit
 
-## create deployment and ingress
+3. node `sdngw` has two bgp peer, one to node `gw` (172.16.12.130) for connection to external  network and one is to contrail controller (node `master`) (172.16.12.10)
 
-to create deployment and ingress
+![sdngw1.png](images/sdngw1.png)
 
-        kubectl apply -f lab1_ingress.yaml
-        kubectl get pods
-        kubectl get services
-        kubectl get ingress
+4. node `gw` is running FRR routing software, and the bgp configuration for this node is this file [bgpd.conf](bgpd.conf). Upload this configuration into FRR on node `gw`
 
-k8s manifest to create deployment and load balancer : [lab1_ingress.yaml](lab1_ingress.yaml)
+        ssh gw
+        sudo vtysh 
+        config t
 
-For the built-in ingress (HAProxy) of contrail, some of the features are not working as expected (according to documentation of kubernetes ingress)
+![frr1.png](images/frr1.png)
 
-I am not sure if it is bug or something else, so you can also test ingress on kubernetes using other software.
+![sdngw2.png](images/sdngw2.png)
 
-The following are the documentation of other ingress software that I have tested on kubernetes + contrail networking
-1. [Ingress using NGINX](nginx/README.md)
-2. [Ingress using Contour](contour/README.md)
+### BGP router configuration on contrail controller
+1. Apply manifest file [lab1_sdngw.yaml](lab1_sdngw.yaml)
 
+        kubectl get bgprouters -A
+        kubectl apply -f lab1_sdngw.yaml
+        kubectl get bgprouters -A
+
+
+![sdngw3](images/sdngw3.png)
+
+2. on node `sdngw` verify that bgp peer to node `gw` (172.16.13.130) and node `master` (172.16.12.10) are up
+
+![sdngw4](images/sdngw4.png)
+
+
+## Create virtual network for floating ip
+1. Apply manifest file [lab1_public1.yaml](lab1_public1.yaml). 
+
+   the parameter required for the virtual network are the following:
+   - subnet for the virtual network
+   - export and import route target. This RT is used to export and import route information with SDN gateway. the export/import route target used, they must match with the one configured on the SDN gateway
+   - labels: service.contrail.juniper.net/externalNetworkSelector. This labels is used by kubernetes when a load balancer object is created. Kubernetes will allocate ip address from virtual network that has the same label as the annotations configured on load balancer object.
+
+        kubectl apply -f lab1_public1.yaml
+
+2. To verify that virtual network has been configured, use the following command
+
+        kubectl get net-attach-def
+        kubectl describe net-attach-def public1
+        kubectl get vn
+        kubectl describe vn public1
+        kubectl get subnet
+        kubectl describe subnet public1
+
+![vn_public1_1.png](images/vn_public1_1.png)
+![vn_public1_2.png](images/vn_public1_2.png)
+![vn_public1_3.png](images/vn_public1_3.png)
+![vn_public1_4.png](images/vn_public1_4.png)
+
+
+## Deploying services with load balancer
+1. Currently there is no services with load balancer configured on the cluster.
+![lab1_lb1.png](images/lab1_lb1.png)
+
+2. on SDNGW, on the routing table external1.inet.0, currently there is route information advertised by contrail controller
+![lab1_lb2.png](images/lab1_lb2.png)
+
+3. Deploy service with loadbalancer using manifest file [lab1_lb2a.yaml](lab1_lb2a.yaml). On the manifest file, the loadbalancer object has been configured with annotation the as the one assigned as label on virtual network `public1`
+![lab1_lb3.png](images/lab1_lb3.png)
+
+        kubectl apply -f lab1_lb2a.yaml
+
+4. Verify that pods and services are configured, external floating ip are assigned and advertised to the SDN Gateway, and MPLSoUDP are created
+![lab1_lb4.png](images/lab1_lb4.png)
+![lab1_lb5.png](images/lab1_lb5.png)
+![lab1_lb6.png](images/lab1_lb6.png)
+
+5. From external node (node `registry`), open http session to external ip assign to service webserver2a, in this case 172.16.1.2
+
+        ssh registry
+        curl http://172.16.1.2
+        ./hit_url.py target=172.16.1.2
+
+![lab1_lb7.png](images/lab1_lb7.png)
+![lab1_lb8.png](images/lab1_lb8.png)
+
+6. Deploy another services with loadbalancer using manifest file [lab1_lb2b.yaml](lab1_lb2b.yaml), and verify that pods and services are up, external ip address is assigned to the services and it is reachable from external node.
+
+![lab1_lb9.png](images/lab1_lb9.png)
+![lab1_lb10.png](images/lab1_lb10.png)
+![lab1_lb11.png](images/lab1_lb11.png)
+
+
+## Deploying services with ingress
 
 
 

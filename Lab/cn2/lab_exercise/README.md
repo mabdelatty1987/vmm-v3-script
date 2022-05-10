@@ -20,7 +20,7 @@ Video recording of the lab can be found [here]()
     - deploying services with load balancer
     - deploying services with ingress
 
-[Lab 2](lab2/README.md)
+[Lab 2](lab2/README.md) (Work in progress)
 
     - configuring non-isolated namespace
     - configuring isolated namespace
@@ -28,18 +28,18 @@ Video recording of the lab can be found [here]()
     - deploying services with different floating ip pool
     - configuring namespace with default floating ip pool
 
-[Lab 3](lab3/README.md)
+[Lab 3](lab3/README.md) (Work in progress)
 
     - configuring kubernetes policy/contrail security
 
-[Lab 4](lab4/README.md)
+[Lab 4](lab4/README.md) (Work in progress)
 
     - configuring service chaining
 
-[Lab 5](lab5/README.md)
+[Lab 5](lab5/README.md) (Work in progress)
 
     - configuring KubeVirt (running VM in kubernetes cluster)
 
-[Lab 6](lab5/README.md)
+[Lab 6](lab5/README.md) (Work in progress)
 
     - configuring gateway-less forwarding

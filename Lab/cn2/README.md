@@ -1,11 +1,11 @@
 # Installing kubernetes and CN2 (Cloud native Contrail networking) (Under heavy construction)
 ## Introduction 
 
-This document provide guide on how to install kubernetes and contrail networking.
+This document provide guide on how to install kubernetes and cloud native contrail networking (CN2).
 
 it is based on CN2 (cloud native contrail networking) [version 22.1](https://www.juniper.net/documentation/us/en/software/cn-cloud-native22/release-notes/22.1/cn-cloud-native-release-notes-22.1/topics/concept/cn-cloud-native-22.1-supported-platforms.html)
 
-by the time this document is written, the official documentation on how to install CN2 with kubernetes cluster is not yet available, but the pre-released document can be found [here](https://uat.juniper.net/documentation/test/us/en/software/cn-cloud-native/cn-cloud-native-k8s-install-and-lcm/cn-cloud-native-k8s-install-and-lcm.pdf)
+The official documentation on how to install CN2 with kubernetes cluster can be found [here](https://www.juniper.net/documentation/us/en/software/cn-cloud-native22/cn-cloud-native-k8s-install-and-lcm/index.html)
 
 
 ## Topology

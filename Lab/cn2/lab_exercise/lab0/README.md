@@ -5,7 +5,7 @@ This container image will be used for the subsequent lab exercise.
 
 ## Steps
 
-1. Upload  file [webserver.tgz](webserver.tgs) into node **registry**
+1. Upload  file [webserver.tgz](webserver.tgz) into node **registry**
 
         scp webserver.tgz registry:~/
 

@@ -266,6 +266,80 @@ There will be two configuration :
 
 
 ## Deploying services with ingress
+### installing NGINX ingress controller
 
+1. Documentation can be found [here](https://kubernetes.github.io/ingress-nginx/deploy/)
+2. Download manifest file to install NGINX ingress controller
 
+        curl -O -L  https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.2.0/deploy/static/provider/cloud/deploy.yaml
+
+3. Add the content of file [lab1_public2.yaml](lab1_public2.yaml) into file deploy.yaml
+
+        cat lab1_public2.yaml >> deploy.yaml
+
+4. Edit file [deploy.yaml](deploy.yaml), look for `kind: Service` with `type: LoadBalancer`, and add `service.contrail.juniper.net/externalNetwork: public1` under `metadata: annotations`
+ 
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          labels:
+            app.kubernetes.io/component: controller
+            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/name: ingress-nginx
+            app.kubernetes.io/part-of: ingress-nginx
+            app.kubernetes.io/version: 1.2.0
+          name: ingress-nginx-controller
+          namespace: ingress-nginx
+          annotations:
+            service.contrail.juniper.net/externalNetwork: public2   ## <---------this is the new line
+        spec:
+          externalTrafficPolicy: Local
+          ports:
+          - appProtocol: http
+            name: http
+            port: 80
+            protocol: TCP
+            targetPort: http
+          - appProtocol: https
+            name: https
+            port: 443
+            protocol: TCP
+            targetPort: https
+          selector:
+            app.kubernetes.io/component: controller
+            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/name: ingress-nginx
+          type: LoadBalancer
+        ---
+5.  Edit file [deploy.yaml](deploy.yaml), under NetworkAttachmentDefinition, set the namespace to `ingress-nginx`
+
+        ---
+        apiVersion: k8s.cni.cncf.io/v1
+        kind: NetworkAttachmentDefinition
+        metadata:
+          name: public2
+          annotations:
+             juniper.net/networks: '{
+                "ipamV4Subnet": "172.16.1.16/28",
+                "fabricSNAT": false,
+                "importRouteTargetList" : ["target:64512:10000"],
+                "exportRouteTargetList" : ["target:64512:10002"]
+             }'
+          labels:
+            service.contrail.juniper.net/externalNetworkSelector: public2
+          namespace: ingress-nginx      ## <--------- set the namespaces
+        spec:
+          config: '{
+            "cniVersion": "0.3.1",
+            "type": "contrail-k8s-cni"
+          }'
+
+6. Apply deploy.yaml
+
+        kubectl apply -f deploy.yaml
+7. Verify that nginx ingress controller are installed
+
+        kubectl  -n ingress-nginx get pods -o wide
+        kubectl -n ingress-nginx get services -o wide
 

@@ -1,9 +1,6 @@
 # This directory contain the scripts/yaml file required for the lab exercise 
 # UNDER HEAVY CONSTRUCTION
 
-Video recording of the lab can be found [here]()
-
-
 ## Lab exercises
 
 [Lab 0](lab0/README.md)

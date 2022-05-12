@@ -94,6 +94,6 @@ Please refer to [this document](kubectl_over_ssh.md) on how to setup kubectl ove
 
 ## Lab Exercise
 
-Please refer to [this document](lab_exercise/README.md) on various lab exercise that can be done on the k8s + CN2 lab.
+Please refer to [this document](lab_exercise/README.md) on various lab exercises that can be done on the k8s + CN2 lab.
 
 

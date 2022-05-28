@@ -11,7 +11,9 @@ metadata:
         "exportRouteTargetList" : ["target:64512:10003"]
     }'
   labels: 
-    service.contrail.juniper.net/externalNetworkSelector: public3
+    # service.contrail.juniper.net/externalNetworkSelector: public3
+    service.contrail.juniper.net/externalNetworkSelector: default-external
+  # namespace: contrail
 spec:
   config: '{
     "cniVersion": "0.3.1", 

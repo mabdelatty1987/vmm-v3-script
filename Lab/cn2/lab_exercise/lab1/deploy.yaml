@@ -320,8 +320,6 @@ metadata:
     app.kubernetes.io/version: 1.2.0
   name: ingress-nginx-controller
   namespace: ingress-nginx
-  annotations:
-     service.contrail.juniper.net/externalNetwork: public2
 spec:
   externalTrafficPolicy: Local
   ports:

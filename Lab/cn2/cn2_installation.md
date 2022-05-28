@@ -1,6 +1,59 @@
 # This document provide information on how to install CN2 on kubernetes cluster
 
-## Steps
+## kernel verion on kubernetes nodes
+Before installing CN2, verify that the linux kernel version on kubernetes nodes match with kernel version supported by CN2.
+
+To check kernel version which are supported by CN2, the following command can be used. Credentials (username and password) to access hub.juniper.net is required.
+
+        curl --user ${HUB_USER}:${HUB_PASSWD} https://hub.juniper.net/v2/_catalog
+        
+For example, here are the list of kernel supported by CN2
+![kernel_version](images/kernel_ver.png)
+
+To check which version of kernel currently running on kubernetes node, the following command can be used
+
+        kubectl get nodes -o wide
+
+![k8s_kernel](images/k8s_kernel_ver.png)
+
+In this case, the running kernel on kubernetes node is 5.4.0-113-generic, but the supported kernel on CN2 is 5.4.0-110-generic  (cn2/contrail-vrouter-kernel-init-5.4.0-110-generic) (kernel version 5.4.0-113-generic is not supported yet by CN2), which means on the kubernetes nodes, the correct version of kernel must be installed.
+
+do the following steps to install the supported kernel version
+1. open ssh session into node **master**
+2. Install kernel version 5.4.0-110-generic
+
+        sudo apt -y install linux-image-5.4.0-110-generic
+3. List the installed kernel on the node
+
+        grep -A100 submenu  /boot/grub/grub.cfg |grep menuentry
+
+![installed_kernel](images/installed_kernel.png)
+
+4. From **submenu 'Advanced options for Ubuntu'**, copy the $menuentry_id_option, and from **menuentry 'Ubuntu, with Linux 5.4.0-110-generic'**, copy the  $menuentry_id_option. 
+
+5. Edit file /etc/default/grub, and change the value of GRUB_DEFAULT to the value from step 4
+![grub_default](images/grub_default.png)
+
+6. update grub configuration using this command
+
+        sudo update-grub
+7. Reboot node master, and verify after reboot that it run the supported kernel version for CN2
+
+        uname -a
+![kernel_ver](images/kernel_ver_nodes.png)
+
+8. Repeat step 2 - 7 on the worker nodes (node1, node2, node3)
+9. Using kubectl, verify that the kubernetes cluster is running with supported kernel version for CN2
+
+        kubectl get nodes -o wide
+
+![k8s_kernel](images/k8s_kernel_ver_cn2.png)
+
+10. Now, we can proceed with CN2 installation
+
+## CN2 installation
+
+### Steps
 1. Download CN2 manifest from [juniper website](https://support.juniper.net/support/downloads/?p=contrail-networking) and save it to node master
 2. extract the files
 

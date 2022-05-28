@@ -1,0 +1,136 @@
+### the following lines are added by vmm-v3-script
+Host *
+    StrictHostKeyChecking no
+	
+	
+host vmm
+    hostname q-pod25-vmm.englab.juniper.net:22
+    user irzan
+	IdentityFile ~/.ssh/key1
+   
+host gw
+   hostname 10.54.28.16
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   
+host proxy
+   hostname 10.54.28.16
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   DynamicForward 1080
+host spine1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.101:22 gw 
+host spine2
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.102:22 gw 
+host leaf1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.103:22 gw 
+host leaf2
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.104:22 gw 
+host leaf3
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.105:22 gw 
+host leaf4
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.106:22 gw 
+host leaf5
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.107:22 gw 
+host sw1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.108:22 gw 
+host sw2
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.109:22 gw 
+host pe1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.110:22 gw 
+host pe2
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.111:22 gw 
+host p1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.112:22 gw 
+host ext1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.113:22 gw 
+host vxlangw
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.114:22 gw 
+host fw1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.16.115:22 gw 
+host apstra
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.150:22 gw 
+host svr1
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.201:22 gw 
+host svr2
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.202:22 gw 
+host svr3
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.203:22 gw 
+host svr4
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.204:22 gw 
+host svr5
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.205:22 gw 
+host svr6
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.206:22 gw 
+host svr7
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.207:22 gw 
+host svr8
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.208:22 gw 
+host svr9
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.209:22 gw 
+host svr10
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.210:22 gw 
+host lxc1
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.211:22 gw 
+host lxc2
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.212:22 gw 
+host svr11
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.213:22 gw 

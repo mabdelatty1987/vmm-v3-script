@@ -142,7 +142,7 @@ you can ssh into controller node (node0) to verify these modifications
 
 ![lxc_profile](images/lxc_profile.png) 
 
-4. Add security nesting and privileged into lxc default profile. Use the following command sto do that
+4. Add security nesting and privileged into lxc default profile. Use the following command to do that
 
         lxc profile set default security.nesting=true
         lxc profile set default security.privileged=true

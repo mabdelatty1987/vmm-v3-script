@@ -163,9 +163,14 @@ In this exercise, services with nodeport will be deployed on kubernetes cluster.
 
 ## configuring SDN Gateway (vMX/MX)
 
-There will be two configuration :
+There will be multiple BGP peers:
+- between SDN gateway (MX) and node GW
+- between SDN gateway (MX) and contrail controller
+
+Therefore, there are three BGP configuration :
 - SDN Gateway configuration 
 - BGP Router configuration on contrail controller
+- BGP configuration on node **gw**
 
 ### SDN gateway configuration
 1. n this lab exercise, Juniper MX/vMX will be used as SDN Gateway.
@@ -181,19 +186,42 @@ There will be two configuration :
 3. node `sdngw` has two bgp peer, one to node `gw` (172.16.12.130) for connection to external  network and one is to contrail controller (node `master`) (172.16.12.10)
 
 ![sdngw1.png](images/sdngw1.png)
+4. Verify that BGP peer has been configured, but BGP connection has not been established
 
-4. node `gw` is running FRR routing software, and the bgp configuration for this node is this file [bgpd.conf](bgpd.conf). Upload this configuration into FRR on node `gw`
+        show bgp summary
 
-        ssh gw
+### BGP configuration on node gw
+1. open ssh session to node **gw**
+2. install frr routing software
+
+        apt -y install frr
+3. enable BGP on FRR by editing file /etc/frr/daemons, and restart 
+
+        sudo cat /etc/frr/daemons | grep bgp
+        sudo sed -i -e 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
+        sudo cat /etc/frr/daemons | grep bgp
+        sudo systemctl restart frr
+
+4. Edit frr configuration, and copy n paste the following configuration
+
         sudo vtysh 
         config t
+        router bgp 65200
+        neighbor 172.16.13.131 remote-as 64512
+        !
+        address-family ipv4 unicast
+        network 0.0.0.0/0
+        exit-address-family
+        !
+        exit
+        exit
+        write mem
+5. Open ssh session into node **sdngw** and verify that bgp peer between node **gw** and **sdngw** are established
 
-![frr1.png](images/frr1.png)
-
-![sdngw2.png](images/sdngw2.png)
+        ssh sdngw "show bgp sum"
 
 ### BGP router configuration on contrail controller
-1. Apply manifest file [lab1_sdngw.yaml](lab1_sdngw.yaml)
+1. Apply manifest file [lab1_sdngw.yaml](lab1_sdngw.yaml) to configure BGP peer between contrail controller and node **sdngw** 
 
         kubectl get bgprouters -A
         kubectl apply -f lab1_sdngw.yaml
@@ -204,50 +232,76 @@ There will be two configuration :
 
 2. on node `sdngw` verify that bgp peer to node `gw` (172.16.13.130) and node `master` (172.16.12.10) are up
 
+        ssh sdngw "show bgp sum"
+
 ![sdngw4](images/sdngw4.png)
 
+## Edit kubemanager parameter
+1. the the kubemanager name that is currently running in the cluster
+
+        kubectl get kubemanager -A
+
+![kubemanager1](../../images/kubemanager1.png)
+
+2. Edit the kubemanager
+
+        kubectl -n contrail edit kubemanager <kubemanager_name>
+
+3. Under **kind: Kubemanager** > **spec**, add the following configuration
+
+        apiVersion: configplane.juniper.net/v1alpha1
+        kind: Kubemanager
+        metadata:
+          name: contrail-k8s-kubemanager
+          namespace: contrail
+        spec:
+          externalNetworkSelectors:
+            default-external:
+               networkSelector:
+                 matchLabels:
+                   service.contrail.juniper.net/externalNetwork: default-external
+
+4. To verify, do the following command
+
+        kubectl -n contrail describe kubemanager <kubemanager_name>
 
 ## Create virtual network for floating ip
-1. Apply manifest file [lab1_public1.yaml](lab1_public1.yaml). 
+1. using kubectl, find out on which namespace virtual-network default-podnetwork  and default-servicenetwork 
 
-   the parameter required for the virtual network are the following:
+        kubectl get vn -A
+
+![vn](../../images/vn_ns.png)
+
+2. Edit file [lab1_default_external.yaml](lab1_default_external.yaml), and set the namespace to the same as found on step
+
+3. Apply manifest file [lab1_default_external.yaml](lab1_default_external.yaml). 
+
+![vn](../../images/vn_ns_default_external.png)
+
+4. the parameter required for the virtual network are the following:
    - subnet for the virtual network
    - export and import route target. This RT is used to export and import route information with SDN gateway. the export/import route target used, they must match with the one configured on the SDN gateway
-   - labels: service.contrail.juniper.net/externalNetworkSelector. This labels is used by kubernetes when a load balancer object is created. Kubernetes will allocate ip address from virtual network that has the same label as the annotations configured on load balancer object.
-
-        kubectl apply -f lab1_public1.yaml
-
-2. To verify that virtual network has been configured, use the following command
-
-        kubectl get net-attach-def
-        kubectl describe net-attach-def public1
-        kubectl get vn
-        kubectl describe vn public1
-        kubectl get subnet
-        kubectl describe subnet public1
-
-![vn_public1_1.png](images/vn_public1_1.png)
-![vn_public1_2.png](images/vn_public1_2.png)
-![vn_public1_3.png](images/vn_public1_3.png)
-![vn_public1_4.png](images/vn_public1_4.png)
-
 
 ## Deploying services with load balancer
 1. Currently there is no services with load balancer configured on the cluster.
-![lab1_lb1.png](images/lab1_lb1.png)
+        
+        kubectl get services -A
 
-2. on SDNGW, on the routing table external1.inet.0, currently there is route information advertised by contrail controller
-![lab1_lb2.png](images/lab1_lb2.png)
+2. on SDNGW, on the routing table external1.inet.0, currently there is no route information advertised by contrail controller
 
-3. Deploy service with loadbalancer using manifest file [lab1_lb2a.yaml](lab1_lb2a.yaml). On the manifest file, the loadbalancer object has been configured with annotation the as the one assigned as label on virtual network `public1`
-![lab1_lb3.png](images/lab1_lb3.png)
+        ssh sdngw "show route table external1.inet.0"
+
+3. Deploy service with loadbalancer using manifest file [lab1_lb2a.yaml](lab1_lb2a.yaml).
 
         kubectl apply -f lab1_lb2a.yaml
 
 4. Verify that pods and services are configured, external floating ip are assigned and advertised to the SDN Gateway, and MPLSoUDP are created
-![lab1_lb4.png](images/lab1_lb4.png)
-![lab1_lb5.png](images/lab1_lb5.png)
-![lab1_lb6.png](images/lab1_lb6.png)
+
+        kubectl get services
+        kubectl get pods
+        ssh sdngw "show route table external1.inet.0"
+        ssh sdngw "show dynamic-tunnels database"
+
 
 5. From external node (node `registry`), open http session to external ip assign to service webserver2a, in this case 172.16.1.2
 
@@ -255,14 +309,14 @@ There will be two configuration :
         curl http://172.16.1.2
         ./hit_url.py target=172.16.1.2
 
-![lab1_lb7.png](images/lab1_lb7.png)
-![lab1_lb8.png](images/lab1_lb8.png)
 
 6. Deploy another services with loadbalancer using manifest file [lab1_lb2b.yaml](lab1_lb2b.yaml), and verify that pods and services are up, external ip address is assigned to the services and it is reachable from external node.
 
-![lab1_lb9.png](images/lab1_lb9.png)
-![lab1_lb10.png](images/lab1_lb10.png)
-![lab1_lb11.png](images/lab1_lb11.png)
+        kubectl apply -f lab1_lb2b.yaml
+        kubectl get pods
+        kubectl get services
+        ssh sdngw "show route table external1.inet.0"
+        ssh sdngw "show dynamic-tunnels database"
 
 
 ## Deploying services with ingress
@@ -273,71 +327,10 @@ There will be two configuration :
 
         curl -O -L  https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.2.0/deploy/static/provider/cloud/deploy.yaml
 
-3. Add the content of file [lab1_public2.yaml](lab1_public2.yaml) into file deploy.yaml
-
-        cat lab1_public2.yaml >> deploy.yaml
-
-4. Edit file [deploy.yaml](deploy.yaml), look for `kind: Service` with `type: LoadBalancer`, and add `service.contrail.juniper.net/externalNetwork: public1` under `metadata: annotations`
- 
-        ---
-        apiVersion: v1
-        kind: Service
-        metadata:
-          labels:
-            app.kubernetes.io/component: controller
-            app.kubernetes.io/instance: ingress-nginx
-            app.kubernetes.io/name: ingress-nginx
-            app.kubernetes.io/part-of: ingress-nginx
-            app.kubernetes.io/version: 1.2.0
-          name: ingress-nginx-controller
-          namespace: ingress-nginx
-          annotations:
-            service.contrail.juniper.net/externalNetwork: public2   ## <---------this is the new line
-        spec:
-          externalTrafficPolicy: Local
-          ports:
-          - appProtocol: http
-            name: http
-            port: 80
-            protocol: TCP
-            targetPort: http
-          - appProtocol: https
-            name: https
-            port: 443
-            protocol: TCP
-            targetPort: https
-          selector:
-            app.kubernetes.io/component: controller
-            app.kubernetes.io/instance: ingress-nginx
-            app.kubernetes.io/name: ingress-nginx
-          type: LoadBalancer
-        ---
-5.  Edit file [deploy.yaml](deploy.yaml), under NetworkAttachmentDefinition, set the namespace to `ingress-nginx`
-
-        ---
-        apiVersion: k8s.cni.cncf.io/v1
-        kind: NetworkAttachmentDefinition
-        metadata:
-          name: public2
-          annotations:
-             juniper.net/networks: '{
-                "ipamV4Subnet": "172.16.1.16/28",
-                "fabricSNAT": false,
-                "importRouteTargetList" : ["target:64512:10000"],
-                "exportRouteTargetList" : ["target:64512:10002"]
-             }'
-          labels:
-            service.contrail.juniper.net/externalNetworkSelector: public2
-          namespace: ingress-nginx      ## <--------- set the namespaces
-        spec:
-          config: '{
-            "cniVersion": "0.3.1",
-            "type": "contrail-k8s-cni"
-          }'
-
-6. Apply deploy.yaml
+6. Apply NGINX ingress controller manifest deploy.yaml
 
         kubectl apply -f deploy.yaml
+        
 7. Verify that nginx ingress controller are installed
 
         kubectl  -n ingress-nginx get pods -o wide

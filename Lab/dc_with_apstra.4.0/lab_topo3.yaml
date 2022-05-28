@@ -15,13 +15,13 @@ pod:
 images:
   gw: images/gw.qcow2
   ubuntu: images/ubuntu-20.04.qcow2
-  vmx_re: images/vmx/junos-vmx-x86-64-21.4R1.12.vmdk
+  vmx_re: images/vmx/junos-vmx-x86-64-22.1R1.10.vmdk
   #vqfx_re: images/vqfx/jinstall-vqfx-10-f-20.2R1.10.vmdk
   vqfx_re: images/vqfx/jinstall-vqfx-10-f-21.3I.vmdk
   # vqfx_re: images/vqfx/jinstall-vqfx-10-f-18.4R2-S2.3.vmdk
   vqfx_cosim: images/vqfx/vqfx-20.2R1-2019010209-pfe-qemu.vmdk
   vsrx: images/vsrx/junos-vsrx3-x86-64-22.1R1.10.vmdk
-  aos: images/aos_server_4.0.2-142.qcow2
+  aos: images/aos_server_4.1.0-115.qcow2
 junos_login:
   login: admin
   password: admin

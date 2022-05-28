@@ -14,7 +14,7 @@
 3. ssh into node **registry** and run script install_crio.sh to install CRI-O container engine. 
 
         tmux
-        ./install_crio.sh
+        sudo ./install_crio.sh
 
 3. On node **registry**, create home directory for the registry, for example ~/registry
 4. On node **registry**, create directory for certificates, for example ~/registry/certs

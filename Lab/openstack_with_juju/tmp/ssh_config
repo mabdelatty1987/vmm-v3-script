@@ -1,0 +1,56 @@
+### the following lines are added by vmm-v3-script
+Host *
+    StrictHostKeyChecking no
+	
+	
+host vmm
+    hostname q-pod25-vmm.englab.juniper.net:22
+    user irzan
+	IdentityFile ~/.ssh/key1
+   
+host gw
+   hostname 10.54.25.58
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   
+host proxy
+   hostname 10.54.25.58
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   DynamicForward 1080
+host juju
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.100:22 gw 
+host cc
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.101:22 gw 
+host client1
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.102:22 gw 
+host ext1
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.13.100:22 gw 
+host node0
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.103:22 gw 
+host node1
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.104:22 gw 
+host node2
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.105:22 gw 
+host node3
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.106:22 gw 
+host sdngw
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.10:22 gw 

@@ -5,6 +5,7 @@
 
 # 24 July 2021, updated for VMM 3.0 (not backward compatible with previous version of VMM)
 
+from re import L
 import param1
 #import sys
 import os
@@ -48,6 +49,7 @@ def read_config(config):
 				print("number of VM on topology doesn't match with on configuration")
 			else:
 				create_config_interfaces(d1)
+		change_gateway4(d1)
 		adpassword_env=os.getenv('ADPASSWORD')
 		user_env=os.getenv('USER')
 		if adpassword_env:
@@ -62,6 +64,16 @@ def read_config(config):
 		print("Permission error")
 	
 	return(d1)
+
+def change_gateway4(d1):
+	for i in d1['vm'].keys():
+		if d1['vm'][i]['os'] in ['ubuntu','desktop']:
+			for j in d1['vm'][i]['interfaces'].keys():
+				if 'gateway4' in d1['vm'][i]['interfaces'][j].keys():
+					if 'static' in d1['vm'][i]['interfaces'][j].keys():
+						d1['vm'][i]['interfaces'][j]['static'].append({'to':'default','via':j['gateway4']})
+					else:
+						d1['vm'][i]['interfaces'][j]['static']=[{'to':'default','via': d1['vm'][i]['interfaces'][j]['gateway4']}]
 
 def create_config_interfaces(d1):
 	num_link = len(d1['fabric']['topology'])
@@ -695,12 +707,14 @@ def set_gw(d1):
 	line_to_file += host_config
 	line_to_file += ['127.0.1.1 gw']
 	line_to_file += ['" | sudo tee /etc/hosts' ]
+	# line_to_file += ['sudo apt install -y isc-dhcp-server']
+	# line_to_file += ['sudo snap install novnc']
 	line_to_file += ['echo "']
 	line_to_file += dhcp_config
 	line_to_file += ['" | sudo tee /etc/dhcp/dhcpd.conf' ]
 	# line_to_file += ['" | sudo tee /etc/dnsmasq.conf' ]
 	# line_to_file += ['sudo systemctl stop dnsmasq']
-	line_to_file += ['sudo systemctl stop isc-dhcp-server']
+	#line_to_file += ['sudo systemctl stop isc-dhcp-server']
 	line_to_file +=['rm -f ~/.ssh/*']
 	line_to_file +=['echo "' + d1['pod']['ssh_key'] + '" | tee .ssh/authorized_keys']
 	line_to_file +=['echo "' + d1['pod']['ssh_key_priv'] + '" | tee .ssh/id_rsa']
@@ -717,6 +731,8 @@ def set_gw(d1):
 	#line_to_file += ['sudo systemctl enable systemd-resolved.service']
 	# line_to_file += ['sudo systemctl restart systemd-resolved.service']
 	#line_to_file += ['sudo ln -s /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf']
+	#line_to_file += ['sudo hostname gw']
+	#line_to_file += ['hostname | sudo tee /etc/hostname']
 	line_to_file += ['sudo rm /etc/resolv.conf']
 	line_to_file += ['echo "']
 	line_to_file += ['nameserver {}'.format(param1.jnpr_dns1)]
@@ -728,17 +744,76 @@ def set_gw(d1):
 	line_to_file += ['']
 	t1,t2 = create_novnc(d1)
 	line_to_file += t1
-	line_to_file += ['sudo netplan apply' ]
-	line_to_file += ['sleep 5']
+	#line_to_file += ['cat << EOF | sudo tee -a /etc/rc.local']
+	#line_to_file += ['/usr/local/bin/startup.sh']
+	#line_to_file += ['EOF']
+	line_to_file += ['echo "/usr/local/bin/startup.sh" | sudo tee -a /etc/rc.local']
+	line_to_file += ['']
+	#line_to_file += ['sleep 5']
+	#line_to_file += ['sleep 2']
 	#line_to_file += ['sudo systemctl restart dnsmasq']
-	line_to_file += ['sudo systemctl restart isc-dhcp-server']
-	line_to_file += t2
+	#line_to_file += ['sleep 5']
+	#line_to_file += ['nohup /usr/local/bin/startup.sh &']
+	#line_to_file += ['sleep 5']
 	#line_to_file += ['sudo cp ~/data1.txt /etc/resolv.conf' ]
 	#line_to_file +=	['sudo sed -i -e "s/#FallbackDNS=/FallBackDNS=%s/" /etc/systemd/resolved.conf'%('66.129.233.82')]
 	line_to_file +=	['sudo sed -i -e "s/#DNS=/DNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns1)]
 	line_to_file +=	['sudo sed -i -e "s/#FallbackDNS=/FallbackDNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns2)]
-	line_to_file += ['sudo systemctl restart systemd-resolved.service']
+	line_to_file += ['']
+	#line_to_file += ['sleep 5']
+	# line_to_file += ['echo "/usr/local/bin/startup.sh" | sudo tee -a /etc/rc.local']
 	line_to_file += ['sleep 2']
+	line_to_file += ['sudo netplan apply' ]
+	line_to_file += ['sudo systemctl restart rc-local.service']
+	line_to_file += ['sudo systemctl restart isc-dhcp-server']
+	line_to_file += ['sudo systemctl restart systemd-resolved.service']
+	#line_to_file += ['sleep 5']
+	# line_to_file += ['echo "']
+	# line_to_file += ['net.ipv4.ip_forward=1']
+	# line_to_file += ['net.ipv6.conf.all.forwarding=1']
+	# line_to_file += ['" | sudo tee -a /etc/sysctl.conf']
+	# line_to_file += ['sudo sysctl  -f /etc/sysctl.conf ']
+	# line_to_file += ['echo "#!/bin/bash']
+	# line_to_file += ['sudo iptables -t nat -A POSTROUTING  -o eth0 -j MASQUERADE']
+	# line_to_file += ['" | sudo tee -a /etc/rc.local']
+	# line_to_file += ['sudo chmod +x /etc/rc.local']
+	# line_to_file += ['echo "']
+	# line_to_file += ['[Unit]']
+	# line_to_file += ['Description=/etc/rc.local Compatibility']
+	# line_to_file += ['ConditionPathExists=/etc/rc.local']
+	# line_to_file += ['[Service]']
+	# line_to_file += ['Type=forking']
+	# line_to_file += ['ExecStart=/etc/rc.local start']
+	# line_to_file += ['TimeoutSec=0']
+	# line_to_file += ['StandardOutput=tty']
+	# line_to_file += ['RemainAfterExit=yes']
+	# line_to_file += ['SysVStartPriority=99']
+	# line_to_file += ['[Install]']
+	# line_to_file += ['WantedBy=multi-user.target']
+	# line_to_file += ['"| sudo tee /etc/systemd/system/rc-local.service']
+	# line_to_file += ['sudo chmod +x /etc/systemd/system/rc-local.service']
+	# line_to_file += ['sudo systemctl enable rc-local.service']
+	# line_to_file += ['sudo systemctl start rc-local.service']	
+	# line_to_file += ['if [ -f /usr/local/bin/startup.sh ]']
+	# line_to_file += ['then']
+	# line_to_file += ['echo "']
+	# line_to_file += ['[Unit]']
+	# line_to_file += ['Description=/usr/local/bin/startup.sh']
+	# line_to_file += ['ConditionPathExists=/usr/local/bin/startup.sh']
+	# line_to_file += ['[Service]']
+	# line_to_file += ['Type=forking']
+	# line_to_file += ['ExecStart=/usr/local/bin/startup.sh start']
+	# line_to_file += ['TimeoutSec=0']
+	# line_to_file += ['StandardOutput=tty']
+	# line_to_file += ['RemainAfterExit=yes']
+	# line_to_file += ['SysVStartPriority=99']
+	# line_to_file += ['[Install]']
+	# line_to_file += ['WantedBy=multi-user.target']
+	# line_to_file += ['"| sudo tee /etc/systemd/system/startup.service']
+	# line_to_file += ['sudo chmod +x /etc/systemd/system/startup.service']
+	# line_to_file += ['sudo systemctl enable startup.service']
+	# line_to_file += ['sudo systemctl start startup.service']	
+	# line_to_file += ['fi']	
 	#line_to_file += ['sudo reboot']
 	f1=param1.tmp_dir + 'set_gw.sh'
 	write_to_file(f1,line_to_file)
@@ -747,9 +822,15 @@ def set_gw(d1):
 	print("uploading file to gw")
 	sftp.put(f1,'set_gw.sh')
 	print("Executing script on gw")
-	cmd1="chmod +x ~/set_gw.sh"
-	ssh.exec_command(cmd1)
-	cmd1="~/set_gw.sh"
+	print("chmod +x set_gw.sh")
+	cmd1="chmod +x /home/ubuntu/set_gw.sh"
+	cmd1='ls -la'
+	s0,s1,s2=ssh.exec_command(cmd1)
+	#print(s1)
+	#ssh.close()
+	#ssh=connect_to_gw(d1)
+	cmd1="bash /home/ubuntu/set_gw.sh"
+	print("executing set_gw.sh")
 	ssh.exec_command(cmd1)
 	sftp.close()
 	ssh.close()
@@ -766,6 +847,7 @@ def create_novnc(d1):
 				vnc_server = get_vncinfo(d1,i)
 				# websock.append("websockify -D --web=/usr/share/novnc/ --cert=/home/ubuntu/novnc.pem {} {}".format(novnc_port,vnc_server))
 				websock.append("websockify -D --web=/usr/share/novnc/ {} {}".format(novnc_port,vnc_server))
+				# websock.append("nohup novnc --listen {} --vnc {} & ".format(novnc_port,vnc_server))
 				novnc_url.append("console {} : http://{}:{}/vnc.html".format(i,ip_gw,novnc_port))
 				novnc_port +=1
 	if websock:
@@ -849,39 +931,58 @@ def set_host(d1):
 				else:
 					if 'ipv4' in intf[j].keys():
 						line_to_file +=	['      addresses: [ {} ]'.format(intf[j]['ipv4'])]
-						if 'gateway4' in intf[j].keys():
-							line_to_file +=	['      gateway4: {}'.format(intf[j]['gateway4'])]
-						if 'dns' in intf[j].keys():
-							line_to_file += ['      nameservers:']
-							# line_to_file +=	['        addresses: [ {} ]'.format(intf[j]['dns'])]
-							line_to_file +=	['        addresses: [ {} ]'.format(param1.jnpr_dns1)]
+						#if 'gateway4' in intf[j].keys():
+							# line_to_file +=	['      gateway4: {}'.format(intf[j]['gateway4'])]
+						line_to_file += ['      nameservers:']
+						line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
+						#line_to_file += ['      routes:']
+						#line_to_file += ['        - to: default']
+						#line_to_file += ['          via: {}'.format(intf[j]['gateway4'])]
+						#line_to_file += ['          metric: 1']
+					#if 'dns' in intf[j].keys():
+					#	line_to_file += ['      nameservers:']
+					#	line_to_file +=	['        addresses: [ {} ]'.format(intf[j]['dns'])]
+					#	line_to_file +=	['        addresses: [ {} ]'.format(param1.jnpr_dns1)]
 						if 'static' in intf[j].keys():
-							list_of_static = intf[j]['static']
+							# list_of_static = intf[j]['static']
+							# line_to_file += ['      routes:']
+							#list_of_static = intf[j]['static']
 							line_to_file += ['      routes:']
-							for k in list_of_static:
+							# for k in list_of_static:
+							for k in intf[j]['static']:
 								line_to_file += ['        - to: {}'.format(k['to'])]
 								line_to_file += ['          via: {}'.format(k['via'])]
 								line_to_file += ['          metric: 1']
 			if br_intf:
 				line_to_file +=	['  bridges:']
+				#print('br_intf :',br_intf)
 				for j in br_intf:
 					line_to_file +=	['    {}:'.format(j['as_bridge'])]
 					line_to_file +=	['      dhcp4: false']
 					line_to_file +=	['      interfaces: [{}]'.format(j['intf'])]
 					if 'ipv4' in j.keys():
 						line_to_file +=	['      addresses: [ {} ]'.format(j['ipv4'])]
-						if 'gateway4' in j.keys():
-							line_to_file +=	['      gateway4: {}'.format(j['gateway4'])]
-						if 'dns' in j.keys():
-							line_to_file += ['      nameservers:']
-							line_to_file +=	['        addresses: [ {} ]'.format(param1.jnpr_dns1)]
-						if 'static' in j.keys():
-							list_of_static = j['static']
-							line_to_file += ['      routes:']
-							for k in list_of_static:
-								line_to_file += ['        - to: {}'.format(k['to'])]
-								line_to_file += ['          via: {}'.format(k['via'])]
-								line_to_file += ['          metric: 1']
+						#if 'gateway4' in j.keys():
+						line_to_file += ['      nameservers:']
+						line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
+						#line_to_file += ['      routes:']
+						#line_to_file += ['        - to: default']
+						#line_to_file += ['          via: {}'.format(j['gateway4'])]
+						#line_to_file += ['          metric: 1']
+					#	line_to_file +=	['      gateway4: {}'.format(j['gateway4'])]
+					#if 'dns' in j.keys():
+					#	line_to_file += ['      nameservers:']
+					#	line_to_file +=	['        addresses: [ {} ]'.format(param1.jnpr_dns1)]
+					if 'static' in j.keys():
+						#list_of_static = j['static']
+						#line_to_file += ['      routes:']
+						#list_of_static = intf[j]['static']
+						#for k in list_of_static:
+						line_to_file += ['      routes:']
+						for k in intf[j]['static']:
+							line_to_file += ['        - to: {}'.format(k['to'])]
+							line_to_file += ['          via: {}'.format(k['via'])]
+							line_to_file += ['          metric: 1']
 			line_to_file += ['" | sudo tee /etc/netplan/01_net.yaml']
 			#line_to_file +=	['sudo sed -i -e "s/#DNS=/DNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns1)]
 			#line_to_file +=	['sudo sed -i -e "s/#FallbackDNS=/FallbackDNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns2)]
@@ -900,23 +1001,31 @@ def set_host(d1):
 				for j in intf.keys():
 					line_to_file +=	['    {}:'.format(j.replace("em","eth"))]
 					line_to_file +=	['      dhcp4: false']
+					if 'mtu' in intf[j].keys():
+							line_to_file +=	['      mtu: {}'.format(intf[j]['mtu'])]
 					if 'ipv4' in intf[j].keys():
 						line_to_file +=	['      addresses: [ {} ]'.format(intf[j]['ipv4'])]
-						if 'mtu' in intf[j].keys():
-							line_to_file +=	['      mtu: {}'.format(intf[j]['mtu'])]
 						if 'gateway4' in intf[j].keys():
-							line_to_file +=	['      gateway4: {}'.format(intf[j]['gateway4'])]
-						if 'dns' in intf[j].keys():
+							# line_to_file +=	['      gateway4: {}'.format(intf[j]['gateway4'])]
 							line_to_file += ['      nameservers:']
-							#line_to_file +=	['        addresses: [ {} ]'.format(intf[j]['dns'])]
-							line_to_file +=	['        addresses: [ {} ]'.format(param1.jnpr_dns1)]
-						if 'static' in intf[j].keys():
-							list_of_static = intf[j]['static']
+							line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
 							line_to_file += ['      routes:']
-							for k in list_of_static:
-								line_to_file += ['        - to: {}'.format(k['to'])]
-								line_to_file += ['          via: {}'.format(k['via'])]
-								line_to_file += ['          metric: 1']
+							line_to_file += ['        - to: default']
+							line_to_file += ['          via: {}'.format(intf[j]['gateway4'])]
+							line_to_file += ['          metric: 1']
+						#if 'dns' in intf[j].keys():
+						#	line_to_file += ['      nameservers:']
+						#	line_to_file +=	['        addresses: [ {} ]'.format(intf[j]['dns'])]
+						#	line_to_file +=	['        addresses: [ {} ]'.format(param1.jnpr_dns1)]
+							if 'static' in intf[j].keys():
+								# list_of_static = intf[j]['static']
+								# line_to_file += ['      routes:']
+								#list_of_static = intf[j]['static']
+								# for k in list_of_static:
+								for k in intf[j]['static']:
+									line_to_file += ['        - to: {}'.format(k['to'])]
+									line_to_file += ['          via: {}'.format(k['via'])]
+									line_to_file += ['          metric: 1']
 				line_to_file += ['" | sudo tee /etc/netplan/01_net.yaml']
 				#line_to_file +=	['sudo sed -i -e "s/#DNS=/DNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns1)]
 				#line_to_file +=	['sudo sed -i -e "s/#FallbackDNS=/FallbackDNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns2)]
@@ -1054,9 +1163,9 @@ def set_host(d1):
 		print("uploading file to %s" %(i))
 		sftp.put(f1,'set_host.sh')
 		print("Executing script on %s" %(i))
-		cmd1="chmod +x ~/set_host.sh"
+		cmd1="chmod +x /home/ubuntu/set_host.sh"
 		ssh2host.exec_command(cmd1)
-		cmd1="sh ~/set_host.sh"
+		cmd1="bash /home/ubuntu/set_host.sh"
 		ssh2host.exec_command(cmd1)
 		sftp.close()
 		ssh2host.close()

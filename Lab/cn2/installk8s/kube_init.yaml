@@ -11,6 +11,7 @@ cgroupDriver: systemd
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
+clusterName: k8s
 networking:
   podSubnet: "10.32.0.0/12"
   serviceSubnet: "10.96.0.0/12"

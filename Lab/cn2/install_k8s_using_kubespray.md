@@ -20,7 +20,7 @@ Documentation on kubspray for kubernetes installation can be found [here](https:
 
 4. Remove existing python3 package
 
-        sudo apt -y remove python3-jinja2 python3-markupsafe && sudo apt autoremove -y 
+        sudo apt -y remove python3-jinja2 python3-markupsafe python3-cryptograph && sudo apt autoremove -y 
 
 4. Install the dependency module 
 
@@ -85,6 +85,7 @@ Documentation on kubspray for kubernetes installation can be found [here](https:
         enable_dual_stack_networks: true        ## default is false
         kube_network_plugin: cni                ## this is to set kubernetes cluster to generic CNI configuration, so CN2 can be installed later.
         kube_version: v1.23.2                   ## this is the latest stable version of kubelet that match with the latest version of crio
+        cluster_name: k8s                       ## default cluster is cluster.local, you can change it to something else, i.e k8s
 
 ## install kubernetes cluster
 

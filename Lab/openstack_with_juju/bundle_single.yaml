@@ -189,6 +189,7 @@ applications:
     bindings:
       "": *net-space
     options:
+      # container_runtime: containerd
       docker-registry: *contrail-docker-registry
       docker-user: *contrail-docker-user
       docker-password: *contrail-docker-password
@@ -199,6 +200,7 @@ applications:
     bindings:
       "": *net-space
     options:
+      # container_runtime: containerd
       docker-registry: *contrail-docker-registry
       docker-user: *contrail-docker-user
       docker-password: *contrail-docker-password
@@ -214,6 +216,7 @@ applications:
     to: [ "0" ]
     options:
       log-level: "SYS_DEBUG"
+      # container_runtime: containerd
       docker-registry: *contrail-docker-registry
       docker-user: *contrail-docker-user
       docker-password: *contrail-docker-password
@@ -226,6 +229,7 @@ applications:
     num_units: 1
     options:
       log-level: "SYS_DEBUG"
+      # container_runtime: containerd
       docker-registry: *contrail-docker-registry
       docker-user: *contrail-docker-user
       docker-password: *contrail-docker-password
@@ -240,6 +244,7 @@ applications:
       "": *net-space
     num_units: 1
     options:
+      # container_runtime: containerd
       log-level: "SYS_DEBUG"
       docker-registry: *contrail-docker-registry
       docker-user: *contrail-docker-user

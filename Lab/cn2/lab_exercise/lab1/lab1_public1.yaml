@@ -10,9 +10,8 @@ metadata:
         "importRouteTargetList" : ["target:64512:10000"], 
         "exportRouteTargetList" : ["target:64512:10001"]
     }'
-  # namespace: contrail-k8s-kubemanager-kubernetes-contrail
+  namespace: contrail-k8s-kubemanager-k8s-contrail
   labels: 
-    # service.contrail.juniper.net/externalNetworkSelector: public1
     service.contrail.juniper.net/externalNetwork: default-external
 spec:
   config: '{

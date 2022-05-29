@@ -1,20 +1,81 @@
 # This document provide information on how to install CN2 on kubernetes cluster
 
-## kernel verion on kubernetes nodes
+## kernel version on kubernetes nodes
 Before installing CN2, verify that the linux kernel version on kubernetes nodes match with kernel version supported by CN2.
 
-To check kernel version which are supported by CN2, the following command can be used. Credentials (username and password) to access hub.juniper.net is required.
+To check which kernel version are supported by CN2, the following command can be used. Credentials (username and password) to access hub.juniper.net is required.
 
         curl --user ${HUB_USER}:${HUB_PASSWD} https://hub.juniper.net/v2/_catalog
+
+or python script [check_kernel.py](check_kernel.py) can also be used to check the kernel version supported by vrouter on CN2
         
 For example, here are the list of kernel supported by CN2
 ![kernel_version](images/kernel_ver.png)
+
+        irzan-mbp:cn2 irzan$ ./check_kernel.py 
+        cn2/contrail-vrouter-kernel-init-3.10.0-1127.19.1.el7.x86_64
+        cn2/contrail-vrouter-kernel-init-3.10.0-1160.el7.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-240.1.1.el8_3.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-240.10.1.el8_3.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-240.15.1.el8_3.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-240.22.1.el8_3.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-305.10.2.el8_4.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-305.12.1.el8_4.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-305.17.1.el8_4.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-305.19.1.el8_4.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-305.25.1.el8_4.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-305.28.1.el8_4.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-305.3.1.el8.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-305.30.1.el8_4.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-305.34.2.el8_4.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-305.40.1.el8_4.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-305.40.2.el8_4.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-305.45.1.el8_4.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-305.7.1.el8_4.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-348.2.1.el8_5.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-348.7.1.el8_5.x86_64
+        cn2/contrail-vrouter-kernel-init-4.18.0-348.el8.x86_64
+        cn2/contrail-vrouter-kernel-init-4.19.157
+        cn2/contrail-vrouter-kernel-init-4.19.171
+        cn2/contrail-vrouter-kernel-init-4.19.171-contrail
+        cn2/contrail-vrouter-kernel-init-4.19.182
+        cn2/contrail-vrouter-kernel-init-4.19.202
+        cn2/contrail-vrouter-kernel-init-5.4.0-100-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-102-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-104-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-105-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-106-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-107-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-108-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-109-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-110-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-42-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-45-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-47-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-48-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-51-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-52-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-53-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-54-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-58-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-59-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-60-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-62-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-64-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-65-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-66-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-67-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-70-generic
+        cn2/contrail-vrouter-kernel-init-5.4.0-71-generic
+        irzan-mbp:cn2 irzan$ 
 
 To check which version of kernel currently running on kubernetes node, the following command can be used
 
         kubectl get nodes -o wide
 
 ![k8s_kernel](images/k8s_kernel_ver.png)
+
+
 
 In this case, the running kernel on kubernetes node is 5.4.0-113-generic, but the supported kernel on CN2 is 5.4.0-110-generic  (cn2/contrail-vrouter-kernel-init-5.4.0-110-generic) (kernel version 5.4.0-113-generic is not supported yet by CN2), which means on the kubernetes nodes, the correct version of kernel must be installed.
 

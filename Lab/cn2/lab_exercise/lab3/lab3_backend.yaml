@@ -1,4 +1,13 @@
-#service-web-lb.yaml 
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab3
+  labels:
+    core.juniper.net/isolated-namespace: "true"
+  annotations:
+    core.juniper.net/forwarding-mode: "fabric-snat"
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -37,7 +46,7 @@ spec:
     spec:
       containers: 
       - name: webserver10
-        image: 172.16.14.10:5000/webserver:0.1
+        image: 172.16.14.10:5000/webserver:0.2
         imagePullPolicy: IfNotPresent 
         securityContext:
            privileged: true
@@ -83,7 +92,7 @@ spec:
     spec:
       containers: 
       - name: dbserver
-        image: 172.16.14.10:5000/webserver:0.1
+        image: 172.16.14.10:5000/dbserver:0.1
         imagePullPolicy: IfNotPresent 
         securityContext:
            privileged: true

@@ -13,6 +13,7 @@ metadata:
   namespace: contrail-k8s-kubemanager-k8s-contrail
   labels: 
     service.contrail.juniper.net/externalNetwork: default-external
+    # service.contrail.juniper.net/externalNetworkSelector: public1
 spec:
   config: '{
     "cniVersion": "0.3.1", 

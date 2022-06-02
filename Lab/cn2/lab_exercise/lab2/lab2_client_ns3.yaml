@@ -2,13 +2,15 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: client3
+  name: client1
   namespace: ns3
 spec:
   containers:
-  - name: alpine
+  - name: c1
     image: 172.16.14.10:5000/webserver:0.1
     imagePullPolicy: IfNotPresent 
+    securityContext:
+      privileged: true
   nodeName: node3
 ---
 apiVersion: v1
@@ -18,9 +20,11 @@ metadata:
   namespace: ns3
 spec:
   containers:
-  - name: alpine
+  - name: c1
     image: 172.16.14.10:5000/webserver:0.1
     imagePullPolicy: IfNotPresent 
+    securityContext:
+      privileged: true
   nodeName: node1
   
   

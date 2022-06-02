@@ -17,15 +17,14 @@
     - deploying services with load balancer
     - deploying services with ingress
 
-[Lab 2](lab2/README.md) (Work in progress)
+[Lab 2](lab2/README.md)
 
     - configuring non-isolated namespace
     - configuring isolated namespace
-    - configuring floating ip pool
-    - deploying services with different floating ip pool
-    - configuring namespace with default floating ip pool
+    - deploying service in the namespace
+    - deploying services with different externalIP
 
-[Lab 3](lab3/README.md) (Work in progress)
+[Lab 3](lab3/README.md)
 
     - configuring kubernetes policy/contrail security
 

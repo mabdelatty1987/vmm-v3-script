@@ -1,80 +1,114 @@
 # Lab 2
+In this lab exercise, we are going to configure namespace and test an enhancement provided by CN2 to namespace that allow segregation of namespace (namespace isolation)
 
-## create namespace, ns1 as non-isolated namespace and ns2 as isolated namespace
+## Creating non-isolated and isolated namespaces
+
+1. Verify that there is no namespace **ns1** and **ns2** configured on the system
+
+        kubectl get ns
+
+2. verify that virtual network **default-podnetwork** and **default-servicenetwork** are inside namespace **contrail-k8s-kubemanager-k8s-contrail**
+
+        kubectl get vn -A
+
+
+3. Create one non-isolated namespace **ns1** using manifest file [lab2_ns_non_isolated.yaml](lab2_ns_non_isolated.yaml)
 
         kubectl apply -f lab2_ns_non_isolated.yaml
-        curl http://<contrail_controller>:8082/virtual-networks
+
+
+
+4. Verify that no additional virtual network  **default-podnetwork** and **default-servicenetwork** are created.
+
+        kubectl get vn -A
+
+![ns1.png](images/ns1.png)
+
+
+5. Create one isolated namespace **ns2** using manifest file [lab2_ns_isolated.yaml](lab2_ns_isolated.yaml)
 
         kubectl apply -f lab2_ns_isolated.yaml
-        curl http://<contrail_controller>:8082/virtual-networks
 
-k8s manifest: [lab2_ns_non_isolated.yaml](lab2_ns_non_isolated.yaml)
+6. Verify that new virtual network **default-podnetwork** and **default-servicenetwork** are created inside this new namespace **ns2**. When an isolated namespace is created, then virtual network **default-podnetwork** and **default-servicenetwork** will be created for this isolated namespace
 
-k8s manifest: [lab2_ns_isolated.yaml](lab2_ns_isolated.yaml)
+        kubectl get vn -A
+![ns2.png](images/ns2.png)
 
-## start pods and deployment in the namespaces
-
-to start the pods and deployment
+## Deploying pods into namespaces
+1. Deploy pods into non-isolated namespace **ns1**, use manifest [lab2_client_ns1.yaml](lab2_client_ns1.yaml)
 
         kubectl apply -f lab2_client_ns1.yaml
+
+2. Deploy pods into isolated namespace **ns2**, use manifest [lab2_client_ns2.yaml](lab2_client_ns2.yaml)
+
         kubectl apply -f lab2_client_ns2.yaml
-        kubectl apply -f lab2_lb_ns1.yaml
-        kubectl apply -f lab2_lb_ns2.yaml
+3. Verify the ip addresses assigned to these pods
 
-to verify the pods
+        kubectl get pods -A -o wide 
 
-        kubectl get pods --all-namespaces -o wide
-        kubectl get services --all-namespaces -o wide
+4. Test communication between pods on different namespace, and the result should be the following
+   - communication between pods on non-isolated namespaces are allowed, for example, pod **client1** on namespace **default** is able to communicate with pod **client1** on namespace **ns1**
+   - Pods on isolated namespace can only communicate with other pods on the same isolated namespace. for example pod **client1** on namespace **ns2** can only communicated with other pod on namespace **ns2**
+   - communication from pods to internet is allowed
 
-k8s manifest: [lab2_client_ns1.yaml](lab2_client_ns1.yaml)
+| from | destination | communication|
+|-|-|-|
+|pod on non-isolated ns| pod on the same non-isolated ns | allowed |
+|pod on non-isolated ns| pod on other non-isolated ns | allowed |
+|pod on non-isolated ns| external | allowed |
+|pod on isolated ns| pod on the same isolated ns | allowed |
+|pod on isolated ns| pod on other ns | NOT allowed |
+|pod on isolated ns| external | NOT Allowed | 
 
-k8s manifest: [lab2_client_ns2.yaml](lab2_client_ns2.yaml)
+![ns3.png](images/ns3.png)
 
-k8s manifest: [lab2_lb_ns1.yaml](lab2_lb_ns1.yaml)
+## Deploying services on the namespaces
+In this exercise, services will be deployed on namespaces.
 
-k8s manifest: [lab2_lb_ns2.yaml](lab2_lb_ns2.yaml)
+By default these services will get externalIP from **default-external** that was configured on lab exercise 1
 
-## test connectivity between different pods on different namespaces
+1. Deploy services and pod into namespaces **ns1** using manifest file [lab2_lb_ns1.yaml](lab2_lb_ns1.yaml)        
 
-        kubectl exec -it <pod_name> -n <name_space> -- sh 
+        kubectl apply -f lab2_lb1_ns1.yaml
+
+2. Deploy services and pod into namespaces **ns2** using manifest file [lab2_lb_ns2.yaml](lab2_lb_ns2.yaml)        
+
+        kubectl apply -f lab2_lb1_ns2.yaml
+
+3. Verify that externalIP has been allocated to services on **ns1** and **ns2**
+
+        kubectl get services -A | grep ns
+
+![ns4.png](images/ns4.png)
+
+4. Testing connectivity to services from external host (node **registry**)
+
+        ssh registry 
+        curl http://172.16.1.4
+        curl http://172.16.1.5
+
+![ns5.png](images/ns5.png)
+
+## Creating another VN for externalIP and deployed services to use this VN
+In this exercise, another VN (virtual network) will be created for externalIP, and another service will be created and use this VN for its externalIP. 
+
+The VN and service will be created in the namespace.
+
+1. deploy new VN using manifest file [lab2_public2.yaml](lab2_public2.yaml)
+
+        kubectl apply -f lab2_public.yaml
+
+2. Verify that vn **public2** has been deployed on namespace **ns2**
         
-## create another floating ip pools and assign it to the object
+        kubectl get vn -A
+3. Deploy service using manifest file [lab2_lb2_ns2.yaml](lab2_lb2_ns2.yaml)
 
-create floating ip pools
+        kubectl apply -f lab2_lb2_ns2.yaml
+4. Verify that the new service has been assigned with externalIP from subnet **public2**
 
-        kubectl apply -f vn_public2.yaml
-        ../config_lab.py set_rt -c vn_public2_rt_fip.yaml
+        kubectl -n ns2 get services
+5. From node **registry**, verify access to this service
 
-k8s manifest: [vn_public2.yaml](vn_public2.yaml)
-Route target and FIP : [vn_public2_rt_fip.yaml](vn_public2_rt_fip.yaml)
+        curl http://<ip_of_new_service>
 
-create deployment with floating ip 
-
-        kubectl apply -f lab2_lb7_default.yaml
-        kubectl get services
-
-k8s manifest: [lab2_lb7_default.yaml](lab2_lb7_default.yaml)
-
-## create namespace with virtual network for floating ip 
-
-create namespace and virtual network 
-
-        kubectl apply -f lab2_ns_ns3.yaml
-
-k8s manifest: [lab2_ns_ns3.yaml](lab2_ns_ns3.yaml)
-
-create deployment in namespace NS3
-
-        kubectl apply -f lab2_lb8_ns3.yaml
-        kubectl get svc -n ns3
-    
-k8s manifest: [lab2_lb8_ns3.yaml](lab2_lb8_ns3.yaml)
-
-
-create deployment in namespace ns3 but with floating ip from global
-
-        kubectl apply -f lab2_lb9_ns3.yaml
-        kubectl get svc -n ns3
-
-k8s manifest: [lab2_lb9_ns3.yaml](lab2_lb9_ns3.yaml)
 

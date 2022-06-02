@@ -240,7 +240,7 @@ Therefore, there are three BGP configuration :
 
 ## Configuring kubemanager
 
-On CN2, to automatically assign ExternalIP to services, label service.contrail.juniper.net/externalNetwork with tag default-external needed to be configured on kubemanager.  By default this is not configured on kubemanager
+On CN2, to automatically assign ExternalIP to services, label service.contrail.juniper.net/externalNetwork needed to be configured on kubemanager.  By default this is not configured on kubemanager
 
 To modify the kubemanager, do the following steps
 
@@ -286,7 +286,7 @@ To modify the kubemanager, do the following steps
    - subnet for the virtual network
    - export and import route target. These RT is used to export and import route information with SDN gateway. the export/import route target used must match with the ones configured on the SDN gateway
    - namaspace (it has to be the same with the namespace where default-podnetwork and default-servicenetwork are configured)
-   - labels service.contrail.juniper.net/externalNetwork with tag default-external
+   - labels service.contrail.juniper.net/externalNetwork with tag the same as the one configured on kubemanager
 
 4. Apply manifest file [lab1_public1.yaml](lab1_public1.yaml). 
 

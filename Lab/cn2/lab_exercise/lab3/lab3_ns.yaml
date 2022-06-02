@@ -3,6 +3,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: lab3
-  annotations:
-    opencontrail.org/isolation: "true"
+  labels:
+    core.juniper.net/isolated-namespace: "true"
+  #annotations:
+  #  opencontrail.org/isolation: "true"
 

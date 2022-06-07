@@ -7,7 +7,7 @@ spec:
   shared: false
   autonomousSystem: 65001
   bgpAsAServiceSessionAttributes:
-    loopCount: 2
+    loopCount: 4
     routeOriginOverride: 
       origin: EGP
     addressFamilies:

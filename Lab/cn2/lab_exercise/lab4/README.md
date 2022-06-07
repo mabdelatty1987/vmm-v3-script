@@ -18,6 +18,20 @@ Object to be configured in this lab exercise:
 ## Documentation
 Documentation on how to configure BGPaaS can be found [here](https://www.juniper.net/documentation/us/en/software/cn-cloud-native22/cn-cloud-native-feature-guide/cn-cloud-native-network-feature/topics/task/cn-cloud-native-bgp-as-service.html)
 
+## uploading cSRX and cRPD image into local repository
+1. Download csrx and crpd software, and upload them into node registry
+2. Load csrx and crpd software image into local repository
+
+        podman image load -i junos-csrx-docker-22.1R1.10.img
+        podman image load -i junos-routing-crpd-amd64-docker-22.1R1.10.tgz
+
+3. Create tag for csrx and crpd images
+4. Push csrx and crpd image into the local repository
+
+![image1.png](images/image1.png)
+![image2.png](images/image2.png)
+![image3.png](images/image3.png)
+
 ## Steps/Lab exercise
 
 1. Use manifest file [lab4_network.yaml](lab4_network.yaml), to create namespace and virtual network
@@ -112,41 +126,91 @@ the topology is  the following
 
 ![sc2.png](images/sc2.png)
 
-1. on SDN Gateway create two routing instances, access and external2.
+1. on SDN Gateway create two routing instances, access and external1.
     - VRF Access for connection to client
-    - VRF external for connection to external network/internet
-2. VRF access configuration
+    - VRF external1 for connection to external network/internet
 
-        set interfaces ge-0/0/2 unit 0 family inet address 172.16.201.1/24
+2. Add the following configuration on the SDN gateway for VRF access configuration
+
         set routing-instances access instance-type vrf
         set routing-instances access routing-options multipath vpn-unequal-cost
-        set routing-instances access interface ge-0/0/2.0
-        set routing-instances access vrf-target target:64512:20013
+        set routing-instances access interface ge-0/0/3.0
+        set routing-instances access vrf-target target:64512:20001
         set routing-instances access vrf-table-label
-3. VRF external2 configuration
+3. Commit the configuration on the sdn gateway and verify that on routing table access.inet.0 and external1.inet.0, have not received routing update regaring VN **blue** and **red**
 
-        set routing-instances external2 instance-type vrf
-        set routing-instances external2 protocols bgp group to_gw neighbor 172.16.13.132 peer-as 65200
-        set routing-instances external2 interface ge-0/0/0.2
-        set routing-instances external2 vrf-target target:64512:20012
-        set routing-instances external2 vrf-table-label
-        set interfaces ge-0/0/0 unit 2 vlan-id 2
-        set interfaces ge-0/0/0 unit 2 family inet address 172.16.13.133/31
+        ssh sdngw "show route table access.inet.0"
+        ssh sdngw "show route table external1.inet.0"
 
-4. on contrail, configure the following
-    - set route target for export and import route between :
-        * vn-left and VRF access
-        * vn-right and VRF external1
-    - configure vn-left and vn-right to allow-transit
+![lab4_13.png](images/lab4_13.png)
 
-5. Verify the content of the routing table
-    - on SDN Gateway
-        * VRF access routing table
-        * VRF external2 routing table
-    - on Contrail controller
-        * vn-left routing table
-        * vn-right routing table
+4. Apply manifest file [lab4_network_rt.yaml](lab4_network_rt.yaml) to add route target to virtual network **blue** and **red**
 
-6. Test connectivity between client and external and verify that the traffic is being forwarded through service instance csrx
+        kubectl -n lab4 describe vn blue    ## to verify that route target has not been configured yet
+        kubectl -n lab4 describe vn red    ## to verify that route target has not been configured yet
+
+        kubectl apply -f lab4_network_rt.yaml
+
+        kubectl -n lab4 describe vn blue    ## to verify that route target has been configured yet
+        kubectl -n lab4 describe vn red    ## to verify that route target has been configured yet
+
+
+5. open session to container **crpd1** on pod **vnf1**, delete the export policy configured on bgp peer, and add **as-override**
+
+        kubectl -n lab4 exec -it vnf1 -c crpd1 -- cli
+        delete protocols bgp group to_left neighbor 192.168.101.3 export
+        delete protocols bgp group to_right neighbor 192.168.102.3 export
+        set protocols bgp group to_left neighbor 192.168.101.3 as-override
+        set protocols bgp group to_right neighbor 192.168.102.3 as-override
+        commit
+
+6. on node **sdngw**, add the following configuration
+
+        ssh sdngw
+        edit
+        set routing-options autonomous-system loops 4
+        commit
+
+7. The following steps is required, since I haven't been able to figure out why cSRX is not using the the routing information provided by cRDP.
+8. Open cli session into container **crpd1** on pod **vnf1**, and add the following static route configuration
+
+        kubectl -n lab4 exec -it vnf1 -c crsx1 -- cli
+        edit
+        set routing-options static route 0.0.0.0/0 next-hop 192.168.102.1/32
+        set routing-options static route 192.168.200.0/24 next-hop 192.168.101.1/32
+        commit
+
+8. from your workstation, open ssh session to node **proxy**
+
+        ssh -fN proxy
+
+9. On the webbrowser, proxy with the following parameter
+   - type: manual proxy
+   - SOCKS host : 127.0.0.1
+   - Port 1080
+
+        this is the configuration on firefox web browser
+        ![firefox.png](images/firefox.png)
+
+10. Open browser tab, and open session to http://172.16.11.1:6087/vnc.html. This is the web UI to access console of node **client1**
+        ![firefox2.png](images/firefox2.png)
+
+11. click connect, and login using user/password : ubuntu/pass01
+
+    ![firefox3.png](images/firefox3.png)
+
+12. Set the netconfiguration with the following paramenter
+    - ip address : 192.168.200.11
+    - netmask : 255.255.255.0
+    - gateway : 192.168.200.1
+    - DNS : 66.129.233.81, 66.129.233.82
+    ![firefox4.png](images/firefox4.png)
+
+13. On node **client**, open terminal or web browser to iniate traffic to internet, and on container **csrx1** pod **nfv1** verify these traffic from the sesssion flow information
+
+![firefox5.png](images/firefox5.png)
+
+![firefox6.png](images/firefox6.png)
+
 
 

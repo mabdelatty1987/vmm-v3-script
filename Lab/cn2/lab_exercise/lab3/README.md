@@ -4,7 +4,7 @@ In this lab exercise, we are going to test kubernetes network policy which is im
 The topology that we are going to use for this lab exercise is the following :
 ![lab3_topology](images/lab3_topology.png)
 
-The object inside the cluster are the following
+The objects inside the cluster are the following
 - service webserver with webserver pods
 - service dbserver with dbserver pods
 

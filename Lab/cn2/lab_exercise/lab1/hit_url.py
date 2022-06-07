@@ -7,8 +7,8 @@ def get_url(URL):
     # proxies={'http': 'socks5://127.0.0.1:1080'}
     # r=requests.get(URL,proxies=proxies)
     r=requests.get(URL)
-    s1=r.text[r.text.index('IP address'):]
-    s2=s1[:s1.index('<br>')].replace(" ","").split('=')
+    s1=r.text[r.text.index('Hostname'):]
+    s2=s1[:s1.index('</h3>')].replace(" ","").split('=')
 	# s1=r.text[r.text.index('IP address'):]
     return s2[1]
 
@@ -53,7 +53,7 @@ def run_hit(URL,number_of_try):
             list_of_ip[ip] += 1
     print("End")
     for i in list_of_ip.keys():
-        print("IP {}, number of hit {} ".format(i,list_of_ip[i]))
+        print("POD {}, number of hit {} ".format(i,list_of_ip[i]))
 
 if len(sys.argv) == 1:
     print("where is the target and count ?")

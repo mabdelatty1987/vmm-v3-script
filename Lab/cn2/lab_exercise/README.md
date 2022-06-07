@@ -24,13 +24,14 @@
     - deploying service in the namespace
     - deploying services with different externalIP
 
-[Lab 3](lab3/README.md)
+[Lab 3](lab3/README.md) (Work in progress)
 
     - configuring kubernetes policy/contrail security
 
 [Lab 4](lab4/README.md) (Work in progress)
 
-    - configuring service chaining
+    - configuring service chaining using BGPaaS
+
 
 [Lab 5](lab5/README.md) (Work in progress)
 

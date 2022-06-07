@@ -217,6 +217,8 @@ Therefore, there are three BGP configuration :
         exit
         exit
         write mem
+        exit
+        
 5. Open ssh session into node **sdngw** and verify that bgp peer between node **gw** and **sdngw** are established
 
         ssh sdngw "show bgp sum"

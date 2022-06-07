@@ -1005,27 +1005,29 @@ def set_host(d1):
 							line_to_file +=	['      mtu: {}'.format(intf[j]['mtu'])]
 					if 'ipv4' in intf[j].keys():
 						line_to_file +=	['      addresses: [ {} ]'.format(intf[j]['ipv4'])]
-						if 'gateway4' in intf[j].keys():
-							# line_to_file +=	['      gateway4: {}'.format(intf[j]['gateway4'])]
-							line_to_file += ['      nameservers:']
-							line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
-							line_to_file += ['      routes:']
-							line_to_file += ['        - to: default']
-							line_to_file += ['          via: {}'.format(intf[j]['gateway4'])]
-							line_to_file += ['          metric: 1']
+						line_to_file += ['      nameservers:']
+						line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
+						#if 'gateway4' in intf[j].keys():
+						#	# line_to_file +=	['      gateway4: {}'.format(intf[j]['gateway4'])]
+						#	line_to_file += ['      nameservers:']
+						#	line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
+						#	line_to_file += ['      routes:']
+						#	line_to_file += ['        - to: default']
+						#	line_to_file += ['          via: {}'.format(intf[j]['gateway4'])]
+						#	line_to_file += ['          metric: 1']
 						#if 'dns' in intf[j].keys():
 						#	line_to_file += ['      nameservers:']
 						#	line_to_file +=	['        addresses: [ {} ]'.format(intf[j]['dns'])]
 						#	line_to_file +=	['        addresses: [ {} ]'.format(param1.jnpr_dns1)]
-							if 'static' in intf[j].keys():
-								# list_of_static = intf[j]['static']
-								# line_to_file += ['      routes:']
-								#list_of_static = intf[j]['static']
-								# for k in list_of_static:
-								for k in intf[j]['static']:
-									line_to_file += ['        - to: {}'.format(k['to'])]
-									line_to_file += ['          via: {}'.format(k['via'])]
-									line_to_file += ['          metric: 1']
+						if 'static' in intf[j].keys():
+							# list_of_static = intf[j]['static']
+							# line_to_file += ['      routes:']
+							#list_of_static = intf[j]['static']
+							# for k in list_of_static:
+							for k in intf[j]['static']:
+								line_to_file += ['        - to: {}'.format(k['to'])]
+								line_to_file += ['          via: {}'.format(k['via'])]
+								line_to_file += ['          metric: 1']
 				line_to_file += ['" | sudo tee /etc/netplan/01_net.yaml']
 				#line_to_file +=	['sudo sed -i -e "s/#DNS=/DNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns1)]
 				#line_to_file +=	['sudo sed -i -e "s/#FallbackDNS=/FallbackDNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns2)]

@@ -9,11 +9,11 @@ data:
     security {
         policies {
             from-zone right to-zone left {
-                policy allow_all {
+                policy allow_ping {
                     match {
                         source-address any;
                         destination-address any;
-                        application any;
+                        application junos-ping;
                     }
                     then {
                         permit;
@@ -41,9 +41,6 @@ data:
                             system-services {
                                 ping;
                             }
-                            protocols {
-                                bgp;
-                            }
                         }
                     }
                 }
@@ -54,9 +51,6 @@ data:
                         host-inbound-traffic {
                             system-services {
                                 ping;
-                            }
-                            protocols {
-                                bgp;
                             }
                         }
                     }

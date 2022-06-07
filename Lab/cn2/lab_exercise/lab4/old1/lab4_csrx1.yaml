@@ -8,13 +8,13 @@ metadata:
     app: service-instances
   annotations:
     k8s.v1.cni.cncf.io/networks: '[
-      {"name": "vn-left" },
-      {"name": "vn-right" }
+      {"name": "blue" },
+      {"name": "red" }
     ]'
 spec:
   containers: 
     - name: csrx1
-      image: 172.16.14.10:5000/csrx:21.4R1.12
+      image: 172.16.14.10:5000/csrx:22.1R1.10
       imagePullPolicy: Always
       env: 
       #- name: CSRX_ROOT_PASSWORD
@@ -49,5 +49,5 @@ spec:
         path: csrx_config
       - key: csrx_license
         path: csrx_license
-  nodeName: node3
+#  nodeName: node3
 

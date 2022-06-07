@@ -25,7 +25,7 @@ proxy:
   forward:
     - localPort: 6443
       destPort: 6443
-      destIP: 172.16.11.10
+      destIP: 172.16.12.10
   DynForward: 1080
 vm:
   gw:
@@ -180,4 +180,21 @@ vm:
           inet: 172.16.13.131/31
       ge-0/0/2: 
         bridge: ds
-
+      ge-0/0/3: 
+        bridge: client
+        family:
+          inet: 192.168.200.1/24
+  client1:
+    type: pcsmall
+    os: desktop
+    vnc: true
+    interfaces:
+      em0: 
+        bridge: client
+  client2:
+    type: pcsmall
+    os: desktop
+    vnc: true
+    interfaces:
+      em0: 
+        bridge: client

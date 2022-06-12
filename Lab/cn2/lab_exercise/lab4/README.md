@@ -171,7 +171,7 @@ the topology is  the following
         set routing-options autonomous-system loops 4
         commit
 
-7. The following steps is required, since I haven't been able to figure out why cSRX is not using the the routing information provided by cRDP.
+7. The following steps is required because cSRX is not able to pickup routing update on the linux kernel.
 8. Open cli session into container **crpd1** on pod **vnf1**, and add the following static route configuration
 
         kubectl -n lab4 exec -it vnf1 -c crsx1 -- cli

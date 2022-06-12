@@ -2,8 +2,8 @@ apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachineInstance
 metadata:
   labels:
-    special: vm2
-  name: vm2
+    special: vm3
+  name: vm3
   namespace: lab5
 spec:
   domain:
@@ -26,8 +26,8 @@ spec:
     pod: {}
   volumes:
   - containerDisk:
-      image: 172.16.14.10:5000/ubuntu:18.04
-      path: /bionic-server-cloudimg-amd64.img
+      image: 172.16.14.10:5000/debian:11
+      path: /debian-11-generic-amd64.qcow2
     name: containerdisk
   - cloudInitNoCloud:
       userData: |

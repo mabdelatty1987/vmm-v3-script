@@ -4,17 +4,17 @@ metadata:
   labels:
     special: vm1
   name: vm1
-  namespace: vm1
+  namespace: lab5
 spec:
   domain:
     devices:
       disks:
-      - disk:
+      - name: containerdisk
+        disk:
           bus: virtio
-        name: containerdisk
-      - disk:
+      - name: cloudinitdisk
+        disk:
           bus: virtio
-        name: cloudinitdisk
       interfaces:
       - name: default
         bridge: {}
@@ -25,15 +25,15 @@ spec:
   - name: default
     pod: {}
   volumes:
-  - containerDisk:
+  - name: containerdisk
+    containerDisk:
       image: 172.16.14.10:5000/cirros:0.5.2
       path: /cirros-0.5.2-x86_64-disk.img
-    name: containerdisk
-  - cloudInitNoCloud:
-      userData: |-
+  - name: cloudinitdisk
+    cloudInitNoCloud:
+      userData: |
         #cloud-config
-        #password: pass01
-        #ssh_pwauth: True
-        #chpasswd: { expire: False }
-    name: cloudinitdisk
+        
+        
+    
 

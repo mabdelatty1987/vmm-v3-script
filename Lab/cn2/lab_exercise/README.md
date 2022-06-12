@@ -24,19 +24,20 @@
     - deploying service in the namespace
     - deploying services with different externalIP
 
-[Lab 3](lab3/README.md) (Work in progress)
+[Lab 3](lab3/README.md)
 
     - configuring kubernetes policy/contrail security
 
-[Lab 4](lab4/README.md) (Work in progress)
+[Lab 4](lab4/README.md)
 
     - configuring service chaining using BGPaaS
+    - edge computing 
 
 
-[Lab 5](lab5/README.md) (Work in progress)
+[Lab 5](lab5/README.md) 
 
-    - configuring KubeVirt (running VM in kubernetes cluster)
+    -  installing and configuring KubeVirt (running VM in kubernetes cluster)
 
-[Lab 6](lab5/README.md) (Work in progress)
+[Lab 6](lab6/README.md)
 
-    - configuring gateway-less forwarding
+    - Installing analytics and Lens GUI 

@@ -2,9 +2,11 @@ apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachineInstance
 metadata:
   labels:
-    special: vm2
-  name: vm2
+    special: vm4
+  name: vm4
   namespace: lab5
+#  annotations:
+#    k8s.v1.cni.cncf.io/networks: left,right
 spec:
   domain:
     devices:
@@ -18,16 +20,29 @@ spec:
       interfaces:
       - name: default
         bridge: {}
+      - name: left
+        bridge: {}
+      - name: right
+        bridge: {}
     resources:
       requests:
         memory: 2048M
+    cpu:
+      cores: 1
+      # model: host-passthrough
   networks:
   - name: default
     pod: {}
+  - name: left
+    multus:
+       networkName: left
+  - name: right
+    multus:
+       networkName: right
   volumes:
   - containerDisk:
-      image: 172.16.14.10:5000/ubuntu:18.04
-      path: /bionic-server-cloudimg-amd64.img
+      image: 172.16.14.10:5000/debian:11
+      path: /debian-11-generic-amd64.qcow2
     name: containerdisk
   - cloudInitNoCloud:
       userData: |

@@ -6,11 +6,11 @@ metadata:
 spec:
   ports:
   - name: ssh-into-vm
-    port: 27017
-    nodePort: 30001
+    port: 22
+    #nodePort: 30001
     protocol: TCP
     targetPort: 22
   selector:
     special: vm2
-  # type: LoadBalancer
-  type: NodePort
+  type: LoadBalancer
+  #type: NodePort

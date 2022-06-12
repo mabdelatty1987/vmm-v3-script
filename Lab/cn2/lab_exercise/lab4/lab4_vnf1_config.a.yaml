@@ -8,7 +8,7 @@ data:
     csrx_config: |
         security {
             policies {
-                from-zone untrust to-zone trust {
+                from-zone right to-zone left {
                     policy allow_ping {
                         match {
                             source-address any;
@@ -20,7 +20,7 @@ data:
                         }
                     }
                 }
-                from-zone trust to-zone untrust {
+                from-zone left to-zone right {
                     policy allow_any {
                         match {
                             source-address any;
@@ -34,7 +34,7 @@ data:
                 }
             }
             zones {
-                security-zone trust {
+                security-zone left {
                     interfaces {
                         ge-0/0/0.0 {
                             host-inbound-traffic {
@@ -48,7 +48,7 @@ data:
                         }
                     }
                 }
-                security-zone untrust {
+                security-zone right {
                     interfaces {
                         ge-0/0/1.0 {
                             host-inbound-traffic {
@@ -117,50 +117,5 @@ data:
                 }
             }
         }
-    crpd2_config: |
-        policy-options {
-            policy-statement to_left {
-                term 1 {
-                    from {
-                        route-filter 192.168.102.0/24 exact;
-                    }
-                    then accept;
-                }
-                term default {
-                    then reject;
-                }
-            }
-            policy-statement to_right {
-                term 1 {
-                    from {
-                        route-filter 192.168.101.0/24 exact;
-                    }
-                    then accept;
-                }
-                term default {
-                    then reject;
-                }
-            }
-        }
-        routing-options {
-            autonomous-system 65001 loops 4;
-        }
-        protocols {
-            bgp {
-                group to_left {
-                    neighbor 192.168.101.3 {
-                        peer-as 64512;
-                        as-override;
-                    }
-                }
-                group to_right {
-                    neighbor 192.168.102.3 {
-                        peer-as 64512;   
-                        as-override;       
-                    }                           
-                }
-            }
-        }
-        
 
 

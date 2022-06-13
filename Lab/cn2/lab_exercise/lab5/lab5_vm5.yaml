@@ -26,6 +26,49 @@ spec:
         bridge: {}
     cpu:
       cores: 2
+      features:
+      #- name: "pbe"
+      #  policy: "require"
+      #- name: "tm2"
+      #  policy: "require"
+      #- name: "est"
+      #  policy: "require"
+      - name: "vmx"
+        policy: "require"
+      #- name: "osxsave"
+      #  policy: "require"
+      #- name: "smx"
+      #  policy: "require"
+      #- name: "ss"
+      #  policy: "require"
+      #- name: "ds"
+      #  policy: "require"
+      #- name: "vme"
+      #  policy: "require"
+      #- name: "dtes64"
+      #  policy: "require"
+      #- name: "monitor"
+      #  policy: "require"
+      #- name: "ht"
+      #  policy: "require"
+      #- name: "dca"
+      #  policy: "require"
+      #- name: "pcid"
+      #  policy: "require"
+      #- name: "tm"
+      #  policy: "require"
+      #- name: "pdcm"
+      #  policy: "require"
+      #- name: "pdpe1gb"
+      #  policy: "require"
+      #- name: "ds_cpl"
+      #  policy: "require"
+      #- name: "xtpr"
+      #  policy: "require"
+      - name: "acpi"
+        policy: "disable"
+      - name: "invtsc"
+        policy: "disable"
     resources:
       requests:
         memory: 4096M
@@ -48,8 +91,8 @@ spec:
       image: 172.16.14.10:5000/vsrx3:22.1R1.10
       path: /junos-vsrx3-x86-64-22.1R1.10.qcow2
   - name: cloudinitdisk
-    #cloudInitNoCloud:
-    cloudInitConfigDrive:
+    cloudInitNoCloud:
+    #cloudInitConfigDrive:
       userData: |
         #junos-config
         system {

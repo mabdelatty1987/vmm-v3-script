@@ -79,10 +79,6 @@ vm:
     vnc: yes
     interfaces:
       em0: 
-        bridge: mgmt
-        mtu: 9000
-        ipv4: 172.16.11.102/24
-      em1: 
         bridge: access
   ext1:
     type: pcsmall
@@ -91,8 +87,6 @@ vm:
     interfaces:
       em0: 
         bridge: ext1
-        ipv4: 172.16.13.100/24
-        gateway4: 172.16.13.1
   node0:
     type: pchpv1
     os: ubuntu
@@ -102,7 +96,7 @@ vm:
         mtu: 9000
         bridge: mgmt
         as_bridge: br0
-        ipv4: 172.16.11.103/24
+        ipv4: 172.16.11.102/24
         gateway4: 172.16.11.1
   node1:
     type: pchpv1
@@ -112,7 +106,7 @@ vm:
       em0: 
         bridge: mgmt
         mtu: 9000
-        ipv4: 172.16.11.104/24
+        ipv4: 172.16.11.103/24
         gateway4: 172.16.11.1
   node2:
     type: pchpv1
@@ -122,10 +116,20 @@ vm:
       em0: 
         bridge: mgmt
         mtu: 9000
-        ipv4: 172.16.11.105/24
+        ipv4: 172.16.11.104/24
         gateway4: 172.16.11.1
   node3:
     type: pchpv1
+    os: ubuntu
+    vnc: yes
+    interfaces:
+      em0: 
+        bridge: mgmt
+        mtu: 9000
+        ipv4: 172.16.11.105/24
+        gateway4: 172.16.11.1
+  node4:
+    type: pcmedium
     os: ubuntu
     vnc: yes
     interfaces:

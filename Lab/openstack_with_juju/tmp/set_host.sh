@@ -4,15 +4,14 @@ echo "
 ::1 ip6-localhost ip6-loopback
 172.16.11.100 juju
 172.16.11.101 cc
-172.16.11.102 client1
-172.16.13.100 ext1
-172.16.11.103 node0
-172.16.11.104 node1
-172.16.11.105 node2
-172.16.11.106 node3
-127.0.1.1 node3 
+172.16.11.102 node0
+172.16.11.103 node1
+172.16.11.104 node2
+172.16.11.105 node3
+172.16.11.106 node4
+127.0.1.1 node4 
 " | sudo tee /etc/hosts
-sudo hostname node3
+sudo hostname node4
 hostname | sudo tee /etc/hostname
 mkdir ~/.ssh
 echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/+8rkgOc76z0m7Cierw4qUs6bahYgQP4/hyPZGmb/mukCSn7ZvbUM27fX1nRbbP8Z0t+ruF8A5kP5jHOXILCTe2K5+JE9aHbkae5ztSwhxZSYxcSPtN0r8G/B57/4cw5QV7yKjSlQiLXf2EMfIt27/ZGeE402Tntz5v41wsj8C9PtBZvSMcgBWYu/HfE94ShSqsUNvg+FzKaVGhPB4mOzsApPF7Y/zopk7ADB6VkBdqUSblauU0a4aDy/3cwGR2NwOGXcszGzNYU4H6AlIsribpQPXkVs/v6b4NRHzAuKVk2FLLneeWsEKIqCZIWjzJj2ck4aWCM3NkoE86ndbRNyFaaxs67KpzPvPlAOwHU8gINyhzDfVi68xeiN9p8ybj3fI/Vw1W70i4wN2rL1PSupnnPNAX0Ijd9ulmhbAJyO+cjuoURLUR56EjJUYfddzRRRjQO0IMKNPDw0BFFxbt4gc1OnC6bJh2odHb/xbXaVCo361kz2IBoeZ3yFVpTcJH8= irzan@irzan-mbp" | tee .ssh/authorized_keys
@@ -63,13 +62,13 @@ network:
       dhcp4: false
       mtu: 9000
       addresses: [ 172.16.11.106/24 ]
+      nameservers:
+         addresses: [ 66.129.233.81 , 66.129.233.82]
       routes:
         - to: default
           via: 172.16.11.1
           metric: 1
 " | sudo tee /etc/netplan/01_net.yaml
-sudo sed -i -e "s/#DNS=/DNS=66.129.233.81/" /etc/systemd/resolved.conf
-sudo sed -i -e "s/#FallbackDNS=/FallbackDNS=66.129.233.82/" /etc/systemd/resolved.conf
 uuidgen  | sed -e 's/-//g' | sudo tee /etc/machine-id
 echo "Host *
    StrictHostKeyChecking no

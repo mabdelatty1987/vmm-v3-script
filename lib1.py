@@ -957,6 +957,7 @@ def set_host(d1):
 				line_to_file +=	['  bridges:']
 				#print('br_intf :',br_intf)
 				for j in br_intf:
+					#print("data bridge ",j)
 					line_to_file +=	['    {}:'.format(j['as_bridge'])]
 					line_to_file +=	['      dhcp4: false']
 					line_to_file +=	['      interfaces: [{}]'.format(j['intf'])]
@@ -979,7 +980,7 @@ def set_host(d1):
 						#list_of_static = intf[j]['static']
 						#for k in list_of_static:
 						line_to_file += ['      routes:']
-						for k in intf[j]['static']:
+						for k in j['static']:
 							line_to_file += ['        - to: {}'.format(k['to'])]
 							line_to_file += ['          via: {}'.format(k['via'])]
 							line_to_file += ['          metric: 1']

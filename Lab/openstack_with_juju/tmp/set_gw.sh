@@ -4,12 +4,11 @@ echo "
 ::1 ip6-localhost ip6-loopback
 172.16.11.100 juju
 172.16.11.101 cc
-172.16.11.102 client1
-172.16.13.100 ext1
-172.16.11.103 node0
-172.16.11.104 node1
-172.16.11.105 node2
-172.16.11.106 node3
+172.16.11.102 node0
+172.16.11.103 node1
+172.16.11.104 node2
+172.16.11.105 node3
+172.16.11.106 node4
 127.0.1.1 gw
 " | sudo tee /etc/hosts
 echo "
@@ -35,35 +34,31 @@ subnet 172.16.13.0 netmask 255.255.255.0 {
    option domain-name-servers 66.129.233.81;
 }
 host juju {
-   hardware ethernet 56:04:19:00:92:51;
+   hardware ethernet 56:04:19:00:81:e8;
    fixed-address 172.16.11.100;
 }
 host cc {
-   hardware ethernet 56:04:19:00:85:2f;
+   hardware ethernet 56:04:19:00:b9:82;
    fixed-address 172.16.11.101;
 }
-host client1 {
-   hardware ethernet 56:04:19:00:76:0d;
+host node0 {
+   hardware ethernet 56:04:19:00:8f:a2;
    fixed-address 172.16.11.102;
 }
-host ext1 {
-   hardware ethernet 56:04:19:00:92:4f;
-   fixed-address 172.16.13.100;
-}
-host node0 {
-   hardware ethernet 56:04:19:00:75:22;
+host node1 {
+   hardware ethernet 56:04:19:00:69:f6;
    fixed-address 172.16.11.103;
 }
-host node1 {
-   hardware ethernet 56:04:19:00:29:fb;
+host node2 {
+   hardware ethernet 56:04:19:00:45:a2;
    fixed-address 172.16.11.104;
 }
-host node2 {
-   hardware ethernet 56:04:19:00:6a:7d;
+host node3 {
+   hardware ethernet 56:04:19:00:3e:db;
    fixed-address 172.16.11.105;
 }
-host node3 {
-   hardware ethernet 56:04:19:00:64:63;
+host node4 {
+   hardware ethernet 56:04:19:00:84:72;
    fixed-address 172.16.11.106;
 }
 " | sudo tee /etc/dhcp/dhcpd.conf
@@ -136,14 +131,15 @@ echo "Host *
 " | tee ~/.ssh/config
 
 echo '#!/bin/bash
-websockify -D --web=/usr/share/novnc/ 6081 q-pod-73g.englab.juniper.net:5941
-websockify -D --web=/usr/share/novnc/ 6082 q-pod-73o.englab.juniper.net:5977
-websockify -D --web=/usr/share/novnc/ 6083 q-pod-73s.englab.juniper.net:5903
-websockify -D --web=/usr/share/novnc/ 6084 q-pod-73o.englab.juniper.net:5978
-websockify -D --web=/usr/share/novnc/ 6085 q-pod-74j.englab.juniper.net:5965
-websockify -D --web=/usr/share/novnc/ 6086 q-pod-73v.englab.juniper.net:5934
-websockify -D --web=/usr/share/novnc/ 6087 q-pod-73o.englab.juniper.net:5976
-websockify -D --web=/usr/share/novnc/ 6088 q-pod-74j.englab.juniper.net:5964
+websockify -D --web=/usr/share/novnc/ 6081 q-pod-73o.englab.juniper.net:5912
+websockify -D --web=/usr/share/novnc/ 6082 q-pod-74j.englab.juniper.net:5997
+websockify -D --web=/usr/share/novnc/ 6083 q-pod-74e.englab.juniper.net:5906
+websockify -D --web=/usr/share/novnc/ 6084 q-pod-73o.englab.juniper.net:5913
+websockify -D --web=/usr/share/novnc/ 6085 q-pod-73g.englab.juniper.net:5957
+websockify -D --web=/usr/share/novnc/ 6086 q-pod-73v.englab.juniper.net:5959
+websockify -D --web=/usr/share/novnc/ 6087 q-pod-74j.englab.juniper.net:5996
+websockify -D --web=/usr/share/novnc/ 6088 q-pod-73o.englab.juniper.net:5914
+websockify -D --web=/usr/share/novnc/ 6089 q-pod-73v.englab.juniper.net:5958
 ' | sudo tee  /usr/local/bin/startup.sh
 sudo chmod +x /usr/local/bin/startup.sh
 echo "#!/bin/bash
@@ -157,11 +153,14 @@ echo "console node0 : http://172.16.11.1:6085/vnc.html"
 echo "console node1 : http://172.16.11.1:6086/vnc.html"
 echo "console node2 : http://172.16.11.1:6087/vnc.html"
 echo "console node3 : http://172.16.11.1:6088/vnc.html"
+echo "console node4 : http://172.16.11.1:6089/vnc.html"
 echo "-------------------------"" | sudo tee /etc/update-motd.d/99-update
 sudo chmod +x /etc/update-motd.d/99-update
 echo "/usr/local/bin/startup.sh" | sudo tee -a /etc/rc.local
+
 sudo sed -i -e "s/#DNS=/DNS=66.129.233.81/" /etc/systemd/resolved.conf
 sudo sed -i -e "s/#FallbackDNS=/FallbackDNS=66.129.233.82/" /etc/systemd/resolved.conf
+
 sleep 2
 sudo netplan apply
 sudo systemctl restart rc-local.service

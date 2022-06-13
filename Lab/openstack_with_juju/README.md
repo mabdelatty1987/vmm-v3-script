@@ -176,7 +176,7 @@ you can ssh into controller node (node0) to verify these modifications
 
 4. add nodes node0, node1, node2 and node3 into juju controller 
 
-        for i in ubuntu@172.16.11.10{3..6}; do juju add-machine ssh:${i} --verbose --show-log; done
+        for i in ubuntu@172.16.11.10{2..5}; do juju add-machine ssh:${i} --verbose --show-log; done
 
 ![juju_add_machine](images/juju_add_machines.png)
 

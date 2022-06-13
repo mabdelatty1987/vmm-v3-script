@@ -9,12 +9,12 @@ host vmm
 	IdentityFile ~/.ssh/key1
    
 host gw
-   hostname 10.54.25.58
+   hostname 10.54.22.151
    user ubuntu
 	IdentityFile ~/.ssh/key1
    
 host proxy
-   hostname 10.54.25.58
+   hostname 10.54.22.151
    user ubuntu
 	IdentityFile ~/.ssh/key1
    DynamicForward 1080
@@ -26,27 +26,23 @@ host cc
    user ubuntu
 	IdentityFile ~/.ssh/key1
    ProxyCommand ssh -W 172.16.11.101:22 gw 
-host client1
-   user ubuntu
-	IdentityFile ~/.ssh/key1
-   ProxyCommand ssh -W 172.16.11.102:22 gw 
-host ext1
-   user ubuntu
-	IdentityFile ~/.ssh/key1
-   ProxyCommand ssh -W 172.16.13.100:22 gw 
 host node0
    user ubuntu
 	IdentityFile ~/.ssh/key1
-   ProxyCommand ssh -W 172.16.11.103:22 gw 
+   ProxyCommand ssh -W 172.16.11.102:22 gw 
 host node1
    user ubuntu
 	IdentityFile ~/.ssh/key1
-   ProxyCommand ssh -W 172.16.11.104:22 gw 
+   ProxyCommand ssh -W 172.16.11.103:22 gw 
 host node2
    user ubuntu
 	IdentityFile ~/.ssh/key1
-   ProxyCommand ssh -W 172.16.11.105:22 gw 
+   ProxyCommand ssh -W 172.16.11.104:22 gw 
 host node3
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.105:22 gw 
+host node4
    user ubuntu
 	IdentityFile ~/.ssh/key1
    ProxyCommand ssh -W 172.16.11.106:22 gw 

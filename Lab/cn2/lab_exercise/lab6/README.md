@@ -45,3 +45,12 @@ Documentation on how to install analytics on k8s + CN2, can be found [here](http
 4. open Lens Application, and install the CN2 extension
 5. Open catalog and access the kubernetes cluster
 
+## Accessing CN2 introspect
+1. On your workstation, open kubectl proxy, and keep this session open 
+
+        kubectl proxy 
+
+2. On your workstation, open web browser to this url http://127.0.0.1:8001/apis/introspect.k8s.io/v1beta1/index
+
+
+

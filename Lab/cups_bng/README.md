@@ -142,32 +142,32 @@ The topology for this lab
         ip addr show dev vlan3
 
 
-3. Install frr routing software on node **gw**
+3. Install FRR routing software on node **gw**
         
         ssh gw
         sudo apt -y update
         sudo apt -y upgrade
         sudo apt -y install frr
 
-4. Edit the the frr configuration to enable BGP, and restart frr service
+4. Edit the the FRR configuration to enable BGP, and restart FRR service
 
         sudo cat /etc/frr/daemons | grep bgp
-        sudo sed -i -e 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
+        sudo sed -i -e 's/bgpd=no/bgpd=yes/' /etc/FRR/daemons
         sudo cat /etc/frr/daemons | grep bgp
         sudo systemctl restart frr
 
-5. Run script set_bgp.sh to configure frr 
+5. Run script set_bgp.sh to configure FRR 
 
         ./set_bgp.sh
 
-6. Enter cli of frr, and verify that the configuration is loaded, and bgp peer to node **pe1** is up
+6. Enter cli of FRR, and verify that the configuration is loaded, and bgp peer to node **pe1** is up
 
         sudo vtysh 
         enable
         show run
         show ip bgp summary
 
-## configure ovs switch on node 
+## configure ovs switch on node ACS1
 1. open ssh session into node **acs1**
 2. bring down interface bracs and delete interface bracs
 

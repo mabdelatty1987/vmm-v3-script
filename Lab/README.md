@@ -15,3 +15,4 @@ The following are different lab scenario in the VMM that can be deployed using t
 11. [Running SD-WAN using 128T](128T/README.md)
 12. [Installing Openstack  + Contrail networking  with juju](openstack_with_juju/README.md)
 13. [Running CN2 (Cloud native Contrail networking) + K8S ](cn2/README.md) (under heavy construction)
+14. [Running CUPS-BNG ](cups_bng/README.md) (under heavy construction)

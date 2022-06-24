@@ -7,29 +7,106 @@ The topology for this lab
 
 [Documentation](https://www.juniper.net/documentation/us/en/software/bng-cups22.1/cups_controller_installation_guide/bng-cups-install-migrate/topics/topic-map/cups_install.html)
 
+## Software version used in this lab
+- CUPS-CP : 22.1R1.10
+- Junos for VMX as CUPS-UP : 22.1R1.10
+- Freeradius: 3.0.16
+- Linux OS for kubernetes node: Ubuntu 18.04.6 with kernel 4.15.0-188-generic 
+- CPE : openwrt 19.07.8
+
+
+## Creating lab topology in Juniper VMM lab
+1. Go to directory [cups_bng](./)
+
+2. Edit file [lab.yaml](./lab.yaml). Set the following parameters to choose which vmm server that you are going to use and the login credential:
+    - vmmserver 
+    - jumpserver
+    - user 
+    - adpassword
+    - ssh_key_name ( please select the ssh key that you want to use, if you don't have it, create one using ssh-keygen and put it under directory **~/.ssh/** on your workstation )
+3. If you want to add devices or change the topooogy of the lab, then edit file [lab.yaml](lab.yaml)
+4. use [vmm.py](../../vmm.py) script to deploy the topology into the VMM. Run the following command from terminal
+
+        ../../vmm.py upload  <-- to create the topology file and the configuration for the VMs and upload them into vmm server
+        ../../vmm.py start   <-- to start the topology in the vmm server
+
+5. Add the content of file [tmp/ssh_config](tmp/ssh_config) into your ssh config file,`~/.ssh/config`. If you have run the previous lab, please remove entries on file `~/.ssh/config` from the previous lab (Any entries after "### the following lines are added by vmm-v3-script" must be deleted)
+
+        vi ~/.ssh/config
+        cat tmp/ssh_config >> ~/.ssh/config
+
+8. Verify that you can access node **gw** using ssh (username: ubuntu,  password: pass01 ). You may have to wait for few minutes for node **gw** to be up and running
+9. Run script [vmm.py](../../vmm.py) to send and run initial configuration on node **gw**
+
+        ../../vmm.py set_gw
+
+10. Verify that you can access other nodes (linux and junos VM), such **master**, **node1**, **node2**, etc. Please use the credential to login.
+
+        ssh master
+
+11. Run script [vmm.py](../../vmm.py) to send and run initial configuration on linux nodes. This script will also reboot the VM. So wait before you test connectivity into the VM
+
+        ../../vmm.py set_host
+
+11. Verify that you can access linux and junos VMs, such **master**, **node1**, **sdngw**, without entering the password. You may have to wait for few minutes for the nodes to be up and running
+
+        ssh master
+        ssh node0
+        ssh node1
+
+## Updating system on linux nodes
+1. Run ansible playbook [update_system.yaml](linux_node/update_system.yaml) to update system on linux node (node0, node1, node2, radius, deployer)
+
+        cd linux_node
+        ansible-playbook update_system.yaml
+
+![update_system.png](images/update_system.png)
+
+2. the nodes (node0, node1, node2, radius, deployer) may need to be rebooted
 
 ## deploying configuration into existing junos devices 
-1. go to directory junos_config
-2. Run ansible-playbook [junos_config/upload_config.yaml](junos_config/upload_config.yaml). It will upload BNG standalone configuration into node **vbng1**, **vbng2**, **acs** and **pe1**
+1. go to directory [junos_config](./junos_config/)
+2. Run ansible-playbook [junos_config/upload_config.yaml](junos_config/upload_config.yaml) and it will upload BNG standalone configuration into node **bng1**, **bng2**, **acs** and **pe1**
 
         cd junos_config
         ansible-playbook upload_config.yaml
-3. Node vbng1 and vbng2 may need to be rebooted because of the new configuration for subscriber management.
+3. Node bng1 and bng2 may need to be rebooted because of the new configuration for subscriber management.
 
-        ssh vbng1 
+        ssh bng1 
         edit
         commit
         run request system reboot
 
 
-        ssh vbng2
+        ssh bng2
         edit
         commit
         run request system reboot
+
+## installing license into node bng1 and bng2
+
+1. upload vmx and vbng license into node bng1 and bng2
+
+        scp vbng_trial_demolab.txt bng1:~/
+        scp vbng_trial_demolab.txt bng2:~/
+        scp vmx_trial_demolab.txt bng1:~/
+        scp vmx_trial_demolab.txt bng2:~/
+
+2. on bng1 and bng2, load the licenses
+
+        ssh bng1
+        request system license add vbng_trial_demolab.txt
+        request system license add scp vmx_trial_demolab.txt
+        show system license
+
+        ssh bng2
+        request system license add vbng_trial_demolab.txt
+        request system license add scp vmx_trial_demolab.txt
+        show system license
 
 ## installing freeradius software 
 1. open ssh session into node **radius**
-2.  from your workstation, upload file [clients.conf](radius/clients.conf) and [authorize](radius/authorize)
+2. from your workstation, upload file [clients.conf](radius/clients.conf) and [authorize](radius/authorize)
 
         cd radius
         scp clients.conf radius:~/
@@ -68,6 +145,8 @@ The topology for this lab
 3. Install frr routing software on node **gw**
         
         ssh gw
+        sudo apt -y update
+        sudo apt -y upgrade
         sudo apt -y install frr
 
 4. Edit the the frr configuration to enable BGP, and restart frr service
@@ -92,6 +171,7 @@ The topology for this lab
 1. open ssh session into node **acs1**
 2. bring down interface bracs and delete interface bracs
 
+        ssh acs1
         sudo ip link show dev bracs
         sudo ip link set dev bracs down
         sudo ip link del dev bracs
@@ -161,7 +241,7 @@ The topology for this lab
 
 ![cpe1b](images/cpe1b.png)
 
-9. open ssh session into node **vbng1**, and verify that client cpe1 is connected
+9. open ssh session into node **bng1**, and verify that client cpe1 is connected
 10. on Client1, open another terminal windows, and verify that interface eth0 has been assigned with ipv4 and ipv6 addresses
 
         ip addr show dev eth0
@@ -174,12 +254,25 @@ The topology for this lab
 
 10. for other CPE configuration, please use the following table
 
-Client node | CPE | BNG that terminate the L2Circuit | username/password for CPE
--|-|-|-
-client1|cpe1|vbng1|cpe1/pass01
-client2|cpe2|vbng1|cpe2/pass01
-client3|cpe3|vbng2|cpe3/pass03
-client4|cpe4|vbng2|cpe4/pass01
+Client node | CPE | BNG that terminate the L2Circuit | username/password for CPE | vlan on access 
+-|-|-|-|-
+client1|cpe1|bng1|cpe1/pass01| 101
+client2|cpe2|bng1|cpe2/pass01| 102
+client3|cpe3|bng2|cpe3/pass03|111
+client4|cpe4|bng2|cpe4/pass01|112
+
+11. on the node **acs** :
+   - traffic from vlan 101 and 102 are send to **bng1** using pseudowire
+   - traffic from vlan 111 and 112 are send to **bng2** using pseudowire
+
+![l2circuit](images/l2circuit.png)
+![l2circuit2](images/l2circuit2.png)
+
+12. on node **bng1** and **bng2**, information about connected subscribers
+
+![subscribers](images/subscribers.png)
+
+13. Now the BNGs (BNG1 and BNG2) are configured with standalone subscriber management configuration
 
 
 ## Installing CUPS BNG software: creating k8s cluster
@@ -206,7 +299,7 @@ client4|cpe4|vbng2|cpe4/pass01
         ssh node0
         tmux
         ./setup_k8s_node.sh
-        sudo reboot
+
 
 6. On node **deployer**, copy /home/ubuntu/.ssh into /root/.ssh
 
@@ -225,7 +318,7 @@ client4|cpe4|vbng2|cpe4/pass01
         bbecloudsetup
 ![bbecloudsetup.png](images/bbecloudsetup.png)        
 
-9. If the installation failed, open ssh session into **node0** , copy the kubebelet configuration and repeat previous step (run bbecloudsetup)
+9. If the installation process failed, then open ssh session into **node0** , copy the kubebelet configuration and repeat previous step (run bbecloudsetup)
 
 ![error1.png](images/error1.png)
 
@@ -247,7 +340,14 @@ client4|cpe4|vbng2|cpe4/pass01
         kubectl get nodes -o wide
         kubectl get pods -o wide -A
 
-11. this step is to install MetalLB for loadbalancer on the kubernetes cluster. Upload file [metallby.yaml](metallb/metallb.yaml) and [metallb_conf.yaml](metallb/metallb_conf.yaml) into node **node0**, and apply these manifest file. 
+11. The following  steps are to install MetalLB for loadbalancer on the kubernetes cluster. By default, the bbeclousetup script doesn't install any load balancer on the kubernetes cluster. This step is optional if we don't want the ip address of the kubernetes node accessible from external network.
+
+12. Upload file [metallby.yaml](metallb/metallb.yaml) and [metallb_conf.yaml](metallb/metallb_conf.yaml) 
+
+        scp metallb_conf.yaml node0:~/
+        scp metallb.yaml node0:~/
+
+13. Open ssh into node **node0**, and apply these manifest file.  
 
         scp metallb_conf.yaml node0:~/
         scp metallb.yaml node0:~/
@@ -260,7 +360,7 @@ client4|cpe4|vbng2|cpe4/pass01
         kubectl -n metallb-system get pods
 
 
-12. on node **node0**, edit file /etc/exports, and add entry for host 172.16.11.110 for all share, and restart nfs service
+12. on node **node0**, edit file /etc/exports, and add entry for host 172.16.11.110 for all share, and restart nfs service. This step is required because when dbng service is started, it will try to mount from node0 (172.16.11.110), and by default the installation script doesn't include node0 in file /etc/exports, and then dbng service will fail to start.
 
         ubuntu@node0:~$ cat /etc/exports
         /mnt/sharedfolder/dbng-core  172.16.11.110(no_subtree_check,rw,sync)
@@ -296,27 +396,105 @@ client4|cpe4|vbng2|cpe4/pass01
 
 ## Configuring control plane
 
-1. open ssh into node0 and open dbng cli
+1. upload BNG-CUPS configuration, [dbng.conf](junos_config/dbng.conf) into node0
+
+        scp junos_config/dbng.conf node0:~/
+
+1. open ssh into node0, open dbng cli, enter the shell and copy the file into dbng CP pod
 
         ssh node0
         dbng cli
+        start shell
+        scp ubuntu@172.16.11.110:~/dbng.conf .
+        exit
 
-2. Upload configuration for the CUPS Control plane
+2. Load configuration into CP
 
-3. open ssh session into node vbng1, and change the apply-group configuration
-
+        dbng cli
         edit
-        delete apply-group
-        set apply-group [pw_b l2c cups_up bng_common ri_b]
+        load merge relatif /dbng.conf
         commit
-        run request system reboot
-4. On CUPS cli, verify that connection to UP vbng1 is up
+
+![dbng1.png](images/dbng1.png)
+
+3. Reboot service CP of the CUPS
+
+        dbng restart cp
+        dbng status
+
+![dbng2.png](images/dbng2.png)
+
+## Changing the configuration on BNG1 and BNG2
+1. open ssh session into bng1 and change the configuration for apply-group to the following
+
+        original configuration: apply-groups [ pw bng bng_common l2c ri ];
+        new configuration: apply-groups [ pw_b l2c bng_common cups_up ri_b ]
+
+![bng1_newconfig.png](images/bng1_newconfig.png)
+
+2. Reboot node bng1
+3. Repeat step 1 and 2 for BNG2
+
+## Verify connection between CP and UP
+1. open ssh session into node0, start dbng cli and verify that CP is communicating with UPs
 
         ssh node0
         dbng cli
-        show system service subscriber-management control-plane association
+        show system subscriber-management control-plane associations 
 
-![cups1.png](images/cups1.png)
+![dbng3.png](images/dbng3.png)
+
+2. open ssh session into bng1 and bng2, and verify that UP is communicating with CP
+
+        ssh bng1
+        show system subscriber-management user-plane associations
+
+![dbng4.png](images/dbng4.png)
+
+        ssh bng1
+        show system subscriber-management user-plane associations
+
+![dbng5.png](images/dbng5.png)
+
+## initiating connection from CPEs.
+1. Access console of client1
+2. open terminal, and open ssh session into 192.168.1.1 (cpe1)
+
+        ssh root@192.168.1.1
+
+3. Start wan interface on cpe1
+
+        ifup wan
+
+4. Repeat step 1-3 on client2, client3, client4
+
+5. open ssh into node0 and start dbng cli and run the following command to verify that subscribers have been connected
+
+        ssh node0
+        dbng cli
+        show system subscribers
+
+![dbng6.png](images/dbng6.png)
+
+7. open ssh session into BNG1 and BNG2, and run the following command 
+
+        ssh bng1
+        show user-plane subscribers
+
+![dbng7.png](images/dbng7.png)
+
+
+        ssh bng2
+        show user-plane subscribers
+
+![dbng8.png](images/dbng8.png)
+
+
+Now you can test different scenarios on CUPS-BNG
+
+
+
+
 
 
 

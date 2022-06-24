@@ -39,10 +39,10 @@ fabric:
   # 0x3d means enable family ipv4, iso and mpls, and enable protocol isis and rsvp
   # 0xbd means enable family ipv4, iso and mpls, and enable protocol isis and rsvp, and delay measurement using RPM
     - [ 0x15d, acs, ge-0/0/2, p1, ge-0/0/0 ]
-    - [ 0x15d, p1, ge-0/0/1, vbng1, ge-0/0/1 ]
-    - [ 0x15d, p1, ge-0/0/2, vbng2, ge-0/0/1 ]
-    - [ 0x15d, vbng1, ge-0/0/2, p2, ge-0/0/0 ]
-    - [ 0x15d, vbng2, ge-0/0/2, p2, ge-0/0/1 ]
+    - [ 0x15d, p1, ge-0/0/1, bng1, ge-0/0/1 ]
+    - [ 0x15d, p1, ge-0/0/2, bng2, ge-0/0/1 ]
+    - [ 0x15d, bng1, ge-0/0/2, p2, ge-0/0/0 ]
+    - [ 0x15d, bng2, ge-0/0/2, p2, ge-0/0/1 ]
     - [ 0x15d, p2, ge-0/0/3, pe1, ge-0/0/1 ]
 vm:
   gw:
@@ -121,9 +121,9 @@ vm:
         bridge: mgmt
         ipv4: 172.16.11.113/24
         gateway4: 172.16.11.1
-  vbng1:
+  bng1:
     type: junos
-    os: mx240
+    os: vmx
     interfaces:
       mgmt: 
         bridge: mgmt4
@@ -140,9 +140,9 @@ vm:
           inet: 172.16.12.1/24
       ge-0/0/3:
         bridge: acsbr1
-  vbng2:
+  bng2:
     type: junos
-    os: mx240
+    os: vmx
     interfaces:
       mgmt: 
         bridge: mgmt4
@@ -161,7 +161,7 @@ vm:
         bridge: acsbr2
   acs:
     type: junos
-    os: mx240
+    os: vmx
     interfaces:
       mgmt: 
         bridge: mgmt4
@@ -178,7 +178,7 @@ vm:
         bridge: acs1
   p1:
     type: junos
-    os: mx240
+    os: vmx
     interfaces:
       mgmt: 
         bridge: mgmt4
@@ -191,7 +191,7 @@ vm:
           isis: passive
   p2:
     type: junos
-    os: mx240
+    os: vmx
     interfaces:
       mgmt: 
         bridge: mgmt4
@@ -204,7 +204,7 @@ vm:
           isis: passive
   pe1:
     type: junos
-    os: mx240
+    os: vmx
     interfaces:
       mgmt: 
         bridge: mgmt4
@@ -239,9 +239,9 @@ vm:
       em6:
         node: [acs, ge-0/0/1, bracs]
       em7:
-        node: [vbng1, ge-0/0/3, bracs]
+        node: [bng1, ge-0/0/3, bracs]
       em8:
-        node: [vbng2, ge-0/0/3, bracs]
+        node: [bng2, ge-0/0/3, bracs]
   client1:
     type: pcsmall
     os: desktop

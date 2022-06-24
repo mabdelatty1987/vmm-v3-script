@@ -34,31 +34,31 @@ subnet 172.16.13.0 netmask 255.255.255.0 {
    option domain-name-servers 66.129.233.81;
 }
 host juju {
-   hardware ethernet 56:04:19:00:81:e8;
+   hardware ethernet 56:01:08:00:84:b7;
    fixed-address 172.16.11.100;
 }
 host cc {
-   hardware ethernet 56:04:19:00:b9:82;
+   hardware ethernet 56:01:08:00:6c:d5;
    fixed-address 172.16.11.101;
 }
 host node0 {
-   hardware ethernet 56:04:19:00:8f:a2;
+   hardware ethernet 56:01:08:00:76:d9;
    fixed-address 172.16.11.102;
 }
 host node1 {
-   hardware ethernet 56:04:19:00:69:f6;
+   hardware ethernet 56:01:08:00:59:34;
    fixed-address 172.16.11.103;
 }
 host node2 {
-   hardware ethernet 56:04:19:00:45:a2;
+   hardware ethernet 56:01:08:00:84:bc;
    fixed-address 172.16.11.104;
 }
 host node3 {
-   hardware ethernet 56:04:19:00:3e:db;
+   hardware ethernet 56:01:08:00:84:a0;
    fixed-address 172.16.11.105;
 }
 host node4 {
-   hardware ethernet 56:04:19:00:84:72;
+   hardware ethernet 56:01:08:00:6f:be;
    fixed-address 172.16.11.106;
 }
 " | sudo tee /etc/dhcp/dhcpd.conf
@@ -131,15 +131,15 @@ echo "Host *
 " | tee ~/.ssh/config
 
 echo '#!/bin/bash
-websockify -D --web=/usr/share/novnc/ 6081 q-pod-73o.englab.juniper.net:5912
-websockify -D --web=/usr/share/novnc/ 6082 q-pod-74j.englab.juniper.net:5997
-websockify -D --web=/usr/share/novnc/ 6083 q-pod-74e.englab.juniper.net:5906
-websockify -D --web=/usr/share/novnc/ 6084 q-pod-73o.englab.juniper.net:5913
-websockify -D --web=/usr/share/novnc/ 6085 q-pod-73g.englab.juniper.net:5957
-websockify -D --web=/usr/share/novnc/ 6086 q-pod-73v.englab.juniper.net:5959
-websockify -D --web=/usr/share/novnc/ 6087 q-pod-74j.englab.juniper.net:5996
-websockify -D --web=/usr/share/novnc/ 6088 q-pod-73o.englab.juniper.net:5914
-websockify -D --web=/usr/share/novnc/ 6089 q-pod-73v.englab.juniper.net:5958
+websockify -D --web=/usr/share/novnc/ 6081 sv8-pod-j17.englab.juniper.net:5901
+websockify -D --web=/usr/share/novnc/ 6082 sv8-pod-j12.englab.juniper.net:5901
+websockify -D --web=/usr/share/novnc/ 6083 sv8-pod-j08.englab.juniper.net:5901
+websockify -D --web=/usr/share/novnc/ 6084 sv8-pod-j03.englab.juniper.net:5901
+websockify -D --web=/usr/share/novnc/ 6085 sv8-pod-g23.englab.juniper.net:5901
+websockify -D --web=/usr/share/novnc/ 6086 sv8-pod-g20.englab.juniper.net:5902
+websockify -D --web=/usr/share/novnc/ 6087 sv8-pod-g18.englab.juniper.net:5901
+websockify -D --web=/usr/share/novnc/ 6088 sv8-pod-g14.englab.juniper.net:5901
+websockify -D --web=/usr/share/novnc/ 6089 sv8-pod-g12.englab.juniper.net:5901
 ' | sudo tee  /usr/local/bin/startup.sh
 sudo chmod +x /usr/local/bin/startup.sh
 echo "#!/bin/bash

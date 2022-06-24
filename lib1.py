@@ -71,9 +71,11 @@ def change_gateway4(d1):
 			for j in d1['vm'][i]['interfaces'].keys():
 				if 'gateway4' in d1['vm'][i]['interfaces'][j].keys():
 					if 'static' in d1['vm'][i]['interfaces'][j].keys():
-						d1['vm'][i]['interfaces'][j]['static'].append({'to':'default','via':j['gateway4']})
+						#d1['vm'][i]['interfaces'][j]['static'].append({'to':'default','via':j['gateway4']})
+						d1['vm'][i]['interfaces'][j]['static'].append({'to':'0.0.0.0/0','via':j['gateway4']})
 					else:
-						d1['vm'][i]['interfaces'][j]['static']=[{'to':'default','via': d1['vm'][i]['interfaces'][j]['gateway4']}]
+						#d1['vm'][i]['interfaces'][j]['static']=[{'to':'default','via': d1['vm'][i]['interfaces'][j]['gateway4']}]
+						d1['vm'][i]['interfaces'][j]['static']=[{'to':'0.0.0.0/0','via': d1['vm'][i]['interfaces'][j]['gateway4']}]
 
 def create_config_interfaces(d1):
 	num_link = len(d1['fabric']['topology'])
@@ -92,6 +94,7 @@ def create_config_interfaces(d1):
 				d1['fabric']['topology'][i].append('0')
 				d1['fabric']['topology'][i].append('0')
 	list_vm = list_vm_from_fabric(d1)
+	#print(list_vm)
 	d2={'vm': {} }
 	for i in list_vm:
 		d2['vm'].update({i : {'interfaces': {}}})
@@ -190,13 +193,16 @@ def create_config_interfaces(d1):
 	for i in d2['vm'].keys():
 		intf = d2['vm'][i]['interfaces']
 		d1['vm'][i]['interfaces'].update(intf)	
-
+	#print(d2)
 	for i in d1['vm'].keys():
 		if d1['vm'][i]['type']=='bridge':
 			list_intf=list(d1['vm'][i]['interfaces'].keys())
+			#print(list_intf)
 			_ = list_intf.pop(0)
+			#print(list_intf)
 			for j in list_intf:
 				node_tmp1 = d1['vm'][i]['interfaces'][j]['node']
+				#print(node_tmp1)
 				n1 = d1['vm'][i]['interfaces'][j]['node'][0]
 				n1_intf = d1['vm'][i]['interfaces'][j]['node'][1]
 				d1['vm'][i]['interfaces'][j] = {'bridge' : i + j}
@@ -1166,9 +1172,11 @@ def set_host(d1):
 		print("uploading file to %s" %(i))
 		sftp.put(f1,'set_host.sh')
 		print("Executing script on %s" %(i))
-		cmd1="chmod +x /home/ubuntu/set_host.sh"
+		#cmd1="chmod +x /home/ubuntu/set_host.sh"
+		cmd1="chmod +x ~/set_host.sh"
 		ssh2host.exec_command(cmd1)
-		cmd1="bash /home/ubuntu/set_host.sh"
+		#cmd1="bash /home/ubuntu/set_host.sh"
+		cmd1="sh ~/set_host.sh"
 		ssh2host.exec_command(cmd1)
 		sftp.close()
 		ssh2host.close()
@@ -1721,6 +1729,7 @@ def write_junos_config(d1):
 		f1.close()
 		for i in d1['vm'].keys():
 			if d1['vm'][i]['type'] == 'junos':
+				#print(d1['vm'][i])
 				dummy1={}
 				dummy1['hostname']=i
 				dummy1['username']=d1['junos_login']['login']

@@ -4,17 +4,17 @@ Host *
 	
 	
 host vmm
-    hostname q-pod25-vmm.englab.juniper.net:22
+    hostname sv8-pod4-vmm.englab.juniper.net:22
     user irzan
 	IdentityFile ~/.ssh/key1
    
 host gw
-   hostname 10.54.22.151
+   hostname 10.93.20.118
    user ubuntu
 	IdentityFile ~/.ssh/key1
    
 host proxy
-   hostname 10.54.22.151
+   hostname 10.93.20.118
    user ubuntu
 	IdentityFile ~/.ssh/key1
    DynamicForward 1080

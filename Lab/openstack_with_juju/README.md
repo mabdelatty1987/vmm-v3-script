@@ -271,35 +271,35 @@ you can ssh into controller node (node0) to verify these modifications
         cat << EOF | tee command_servers.yml 
         ---
         command_servers:
-            server1:
-                ip: 172.16.11.101
-                connection: ssh
-                ssh_user: ubuntu
-                ssh_pass: pass01
-                sudo_pass: pass01
-                ntpserver: ntp.juniper.net
+                server1:
+                        ip: 172.16.11.101
+                        connection: ssh
+                        ssh_user: ubuntu
+                        ssh_pass: pass01
+                        sudo_pass: pass01
+                        ntpserver: ntp.juniper.net
 
-                registry_insecure: false
-                container_registry: hub.juniper.net/contrail
-                container_tag: ${CONTAINER_TAG}
-                container_registry_username: ${REGISTRY_USER}
-                container_registry_password: ${REGISTRY_PASSWORD}
-                config_dir: /etc/contrail
+                        registry_insecure: false
+                        container_registry: hub.juniper.net/contrail
+                        container_tag: ${CONTAINER_TAG}
+                        container_registry_username: ${REGISTRY_USER}
+                        container_registry_password: ${REGISTRY_PASSWORD}
+                        config_dir: /etc/contrail
 
-                contrail_config:
-                    database:
-                        type: postgres
-                        dialect: postgres
-                        password: contrail123
-                    keystone:
-                        assignment:
-                        data:
-                            users:
-                                admin:
-                                password: pass01
-                    insecure: true
-                    client:
-                        password: pass01
+                        contrail_config:
+                                database:
+                                        type: postgres
+                                        dialect: postgres
+                                        password: contrail123
+                                keystone:
+                                        assignment:
+                                                data:
+                                                        users:
+                                                                admin:
+                                                                        password: pass01
+                                insecure: true
+                                client:
+                                        password: pass01
         EOF
 
 6. Before running the contrail-command-deployer, delete some files from the system
@@ -310,16 +310,16 @@ you can ssh into controller node (node0) to verify these modifications
 6. Run the following script to install contrail command. Remember to set the container tag
 
         docker run -dt \
-        -v /home/ubuntu/command_servers.yml:/command_servers.yml \
-        -e action=import_cluster \
-        -e orchestrator=juju \
-        -e delete_db=yes \
-        -e juju_controller=172.16.11.100 \    # ip address of juju controller
-        -e juju_controller_password=pass01 \  # ssh password to login into juju controller
-        -e juju_controller_user=ubuntu \      # ssh user to login into juju controller
-        -e juju_model=cn \                    # juju model used in juju controller to install openstack
-        --name contrail_command_deployer \
-        hub.juniper.net/contrail/contrail-command-deployer:${CONTAINER_TAG}
+                -v /home/ubuntu/command_servers.yml:/command_servers.yml \
+                -e action=import_cluster \
+                -e orchestrator=juju \
+                -e delete_db=yes \
+                -e juju_controller=172.16.11.100 \    # ip address of juju controller
+                -e juju_controller_password=pass01 \  # ssh password to login into juju controller
+                -e juju_controller_user=ubuntu \      # ssh user to login into juju controller
+                -e juju_model=cn \                    # juju model used in juju controller to install openstack
+                --name contrail_command_deployer \
+                hub.juniper.net/contrail/contrail-command-deployer:${CONTAINER_TAG}
 
 7. Do the following to monitor the logs of contrail command deployer
 

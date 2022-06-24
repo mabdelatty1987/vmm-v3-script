@@ -1,0 +1,72 @@
+### the following lines are added by vmm-v3-script
+Host *
+    StrictHostKeyChecking no
+	
+	
+host vmm
+    hostname sv8-pod4-vmm.englab.juniper.net:22
+    user irzan
+	IdentityFile ~/.ssh/key1
+   
+host gw
+   hostname 10.93.17.180
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   
+host proxy
+   hostname 10.93.17.180
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   DynamicForward 1080
+host deployer
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.100:22 gw 
+host radius
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.101:22 gw 
+host node0
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.110:22 gw 
+host node1
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.111:22 gw 
+host node2
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.112:22 gw 
+host nfs
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.113:22 gw 
+host vbng1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.14.11:22 gw 
+host vbng2
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.14.12:22 gw 
+host acs
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.14.13:22 gw 
+host p1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.14.14:22 gw 
+host p2
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.14.15:22 gw 
+host pe1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.14.16:22 gw 
+host acs1
+   user alpine
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.11.115:22 gw 

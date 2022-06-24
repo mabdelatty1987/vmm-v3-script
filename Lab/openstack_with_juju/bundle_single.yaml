@@ -70,7 +70,6 @@ applications:
       admin-role: "admin"
       admin-password: "pass01"
     to: [ "lxd:0"]
-  
   ### Done
   mysql:
     series: bionic

@@ -1,0 +1,37 @@
+admin@vbng1# run show system license 
+License usage: 
+                                 Licenses     Licenses    Licenses    Expiry
+  Feature name                       used    installed      needed 
+  subscriber-accounting                 1            0           1    29 days
+  subscriber-authentication             1            0           1    29 days
+  subscriber-address-assignment         1            0           1    29 days
+  scale-subscriber                      1           10           0    permanent
+  scale-l2tp                            0         1000           0    permanent
+  mobile-next-scaling                   0         1000           0    permanent
+  mobile-next-http-app-scaling          0         1000           0    permanent
+  mobile-next-policy-prepaid-scaling        0      1000          0    permanent
+  mobile-next-DPI-base                  0         1000           0    permanent
+  cBNG Lite UP License                  0          100           0    permanent
+
+Licenses installed: none
+
+[edit]
+admin@vbng1#
+
+Hardware inventory:
+Item             Version  Part number  Serial number     Description
+Chassis                                VM62B2D18DBE      MX240
+Midplane        
+Routing Engine 0                       f7a7874a-f2       RE-VMX
+CB 0                                                     VMX SCB
+FPC 0                     BUILTIN      BUILTIN           Virtual FPC
+  CPU            Rev. 1.0 RIOT-LITE    BUILTIN          
+  MIC 0                                                  Virtual 20x 1GE(LAN) SFP
+    PIC 0                 BUILTIN      BUILTIN           Virtual 10x 1GE(LAN) SFP
+    PIC 1                 BUILTIN      BUILTIN           Virtual 10x 1GE(LAN) SFP
+  MIC 1                                                  Virtual 4x 10GE(LAN) XFP
+    PIC 2                 BUILTIN      BUILTIN           Virtual 2x 10GE(LAN) XFP
+    PIC 3                 BUILTIN      BUILTIN           Virtual 2x 10GE(LAN) XFP
+
+[edit]
+admin@vbng1#

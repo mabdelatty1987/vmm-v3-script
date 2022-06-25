@@ -14,7 +14,6 @@ The topology for this lab
 - Linux OS for kubernetes node: Ubuntu 18.04.6 with kernel 4.15.0-188-generic 
 - CPE : openwrt 19.07.8
 
-
 ## Creating lab topology in Juniper VMM lab
 1. Go to directory [cups_bng](./)
 

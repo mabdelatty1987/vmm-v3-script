@@ -6,7 +6,7 @@ The following are different lab scenario in the VMM that can be deployed using t
 2. [Running Paragon Automation platform](paragon/README.md)
 3. [Running Datacenter with apstra + vqfx](dc_with_apstra.4.0/README.md)
 4. [Testing EVPN-VxLAN using VMX](evpn/README.md)
-5. [Running vmware lab](vmware/README.md)
+5. ~[Running vmware lab](vmware/README.md)~
 6. [Running Openstack with Contrail networking ](openstack_with_contrail/README.md)
 7. [Running vBNG ](vbng/README.md)
 8. ~[Running CN2 (Cloud native Cloud networking) CN2 early release ](cn2-early/README.md)~

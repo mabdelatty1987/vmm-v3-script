@@ -76,10 +76,12 @@ To check which version of kernel currently running on kubernetes node, the follo
 ![k8s_kernel](images/k8s_kernel_ver.png)
 
 **the following information is valid for CN2 22.1.0.93**
+
 In this case, the running kernel on kubernetes node is 5.4.0-113-generic, but the supported kernel on CN2 is 5.4.0-110-generic  (cn2/contrail-vrouter-kernel-init-5.4.0-110-generic) (by the time this document is written, kernel version 5.4.0-113-generic is not supported yet by CN2), which means on the kubernetes nodes, the correct version of kernel must be installed.
 
 **for CN 22.2.0.93**
-for CN 22.2.0.93, the supported ubuntu kernel is 5.4.0-113-generic)
+
+for CN 22.2.0.93, the latest version supported ubuntu kernel is 5.4.0-113-generic
 
 
 do the following steps to install the supported kernel version

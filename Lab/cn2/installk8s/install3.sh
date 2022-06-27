@@ -9,7 +9,8 @@ EOF
 sudo sysctl --system
 
 #VERSION=1.22.1-00
-VERSION=1.23.2-00
+VERSION=1.23.3-00
+#VERSION=1.24.1-00
 # VERSION=""
 sudo apt-get update
 sudo apt-get install -y apt-transport-https ca-certificates curl

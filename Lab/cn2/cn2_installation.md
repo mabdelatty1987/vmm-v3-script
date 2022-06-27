@@ -75,9 +75,12 @@ To check which version of kernel currently running on kubernetes node, the follo
 
 ![k8s_kernel](images/k8s_kernel_ver.png)
 
-
-
+**the following information is valid for CN2 22.1.0.93**
 In this case, the running kernel on kubernetes node is 5.4.0-113-generic, but the supported kernel on CN2 is 5.4.0-110-generic  (cn2/contrail-vrouter-kernel-init-5.4.0-110-generic) (by the time this document is written, kernel version 5.4.0-113-generic is not supported yet by CN2), which means on the kubernetes nodes, the correct version of kernel must be installed.
+
+**for CN 22.2.0.93**
+for CN 22.2.0.93, the supported ubuntu kernel is 5.4.0-113-generic)
+
 
 do the following steps to install the supported kernel version
 1. open ssh session into node **master**
@@ -115,25 +118,44 @@ do the following steps to install the supported kernel version
 ## CN2 installation
 
 ### Steps
+
 1. Download CN2 manifest from [juniper website](https://support.juniper.net/support/downloads/?p=contrail-networking) and save it to node master
 2. extract the files
 
-        tar xvfz contrail-manifests-k8s-22.1.0.93.tgz
+        tar xvfz contrail-manifests-k8s-22.1.0.93.tgz # this is for version 22.1.0.93
+        tar xvfz contrail-manifests-k8s-22.2.0.93.tgz # this is for version 22.2.0.93
 
-3. For single cluster deployment, the manifest file is contrail-manifests-k8s/single_cluster/deployer.yaml
+3. For single cluster deployment, the manifest file is contrail-manifests-k8s/single_cluster/deployer.yaml (for 22.1.0.93) or contrail-manifests-k8s/single_cluster/single_cluster_deployer_example.yaml (for 22.2.0.93)
 4. Edit file contrail-manifests-k8s/single_cluster/deployer.yaml, and change according to the followings:
-   - if the kubernetes cluster only have one/single master node, then change count for replicas of contrail api-server, contrail controller, contrail kubemanager, contrail control, from 3 to 1
+   - for CN2 22.1.0.93, if the kubernetes cluster only have one/single master node, then change count for replicas of contrail api-server, contrail controller, contrail kubemanager, contrail control, from 3 to 1
    - if separate interface is used for fabric, for example management interface is using interface eth0 and fabric interface is using eth1, then vrouter object, for both master and worker node, set the gateway of virtualHostInterface to the default gateway of the subnet connected to interface eth1. For example interface eth1 is connected to subnet 172.16.12.0/24 and the default gateway is 172.16.12.1, the set the following for vrouter master node and worker nodes
 
                 agent:
                   virtualHostInterface:
                     gateway: 172.16.12.1
 
-5. Deploy the manifest file using kubectl command
+   - for manifest file CN2 22.2.0.93, delete all entries related to object **Namespace** and **secret**
 
-        kubectl apply -f contrail-manifests-k8s/single_cluster/deployer.yaml
+![delete_lines_1.png](images/delete_lines_1.png)
+![delete_lines_2.png](images/delete_lines_2.png)
 
-6. Run kubectl get pods -A -o wide, to verify that pods for contrail has been deployed
+5. Run the following script to create namespace and secret to access hub.juniper.net
+
+        kubectl create ns contrail
+        kubectl create ns contrail-system
+        kubectl create ns contrail-deploy
+        kubectl create ns contrail-analytics
+        kubectl create secret docker-registry registrypullsecret --docker-server=hub.juniper.net --docker-username=${HUB_USER} --docker-password=${HUB_PASSWD}--docker-email=irzan@juniper.net -n contrail
+        kubectl create secret docker-registry registrypullsecret --docker-server=hub.juniper.net --docker-username=${HUB_USER} --docker-password=${HUB_PASSWD} --docker-email=irzan@juniper.net -n contrail-system
+        kubectl create secret docker-registry registrypullsecret --docker-server=hub.juniper.net --docker-username=${HUB_USER} --docker-password=${HUB_PASSWD} --docker-email=irzan@juniper.net -n contrail-deploy
+        kubectl create secret docker-registry registrypullsecret --docker-server=hub.juniper.net --docker-username=${HUB_USER} --docker-password=${HUB_PASSWD} --docker-email=irzan@juniper.net -n contrail-analytics
+
+
+6. Deploy the edited manifest file using kubectl command
+
+        kubectl apply -f deployer.yaml 
+
+7. Run kubectl get pods -A -o wide, to verify that pods for contrail has been deployed
 
         watch -n 5 kubectl get pods -A -o wide
 

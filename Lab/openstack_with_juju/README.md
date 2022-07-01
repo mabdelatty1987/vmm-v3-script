@@ -168,7 +168,7 @@ you can ssh into controller node (node0) to verify these modifications
 
 3. Run the following to boostrap juju controller and add the model to run the openstack cluster
 
-        ​juju bootstrap cloud1
+        ​juju bootstrap cloud1 
         juju add-model cn
         juju models # to verify that model cn has been added and selected as the current model
 

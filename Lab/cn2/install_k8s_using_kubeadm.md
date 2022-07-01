@@ -34,6 +34,8 @@
 
 7. Edit /var/lib/kubelet/kubeadm-flags.env, and add --node-ip=172.16.12.10 to KUBELET_KUBEADM_ARGS.
 
+        sudo sed -i -e 's/"$/ --node-ip=172.16.12.10"/' /var/lib/kubelet/kubeadm-flags.env 
+
 ![kubeadm_flags](images/kubeadm_flags.png)
 
 8. Restart kubelet service and verify that the Internal-IP has been changed to 172.16.12.10 (ip address on interface eth1)
@@ -52,6 +54,23 @@
    - edit file /var/lib/kubelet/kubeadm-flags.env
    - add --node-ip=172.16.12.11/12/13 to KUBELET_KUBEADM_ARGS (Set the ip address accordingly on each node)
    - restart the kubelet.service, sudo systemctl restart kubelet.service
+
+        ssh node1 
+        sudo sed -i -e 's/"$/ --node-ip=172.16.12.11"/' /var/lib/kubelet/kubeadm-flags.env
+        sudo systemctl restart kubelet.service
+        exit
+
+        ssh node2
+        sudo sed -i -e 's/"$/ --node-ip=172.16.12.12"/' /var/lib/kubelet/kubeadm-flags.env
+        sudo systemctl restart kubelet.service
+        exit
+
+        ssh node3 
+        sudo sed -i -e 's/"$/ --node-ip=172.16.12.13"/' /var/lib/kubelet/kubeadm-flags.env
+        sudo systemctl restart kubelet.service
+        exit
+
+
 
 ![kubeadm_flags1](images/kubeadm_flags1.png)
 
@@ -82,11 +101,11 @@ Screenshot recording for these steps, can be found [here](https://asciinema.org/
 
 2. edit file kubeadmin, under **apiServer:** add the following:
 
-        apiServer
-          certSANs:
-          - "127.0.0.1"
-          - "172.16.12.10"
-          - "10.96.0.1"
+      apiServer
+        certSANs:
+        - "127.0.0.1"
+        - "172.16.12.10"
+        - "10.96.0.1"
 
 3. Move the existing API server certificate to different directory
 

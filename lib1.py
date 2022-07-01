@@ -18,6 +18,7 @@ from jinja2 import Template
 import shutil
 from pathlib import Path
 import yaml
+import pexpect
 import pprint
 #import json
  
@@ -1428,6 +1429,11 @@ def upload(d1,upload_status=1):
 				lab_conf.append(str1)
 				str1='#define VSRXDISK basedisk "' + d1['pod']['home_dir']  + "/" + d1['images']['vsrx'] + '";'
 				lab_conf.append(str1)
+			elif i=='vex':
+				str1="#undef VEXDISK"
+				lab_conf.append(str1)
+				str1='#define VEXDISK basedisk "' + d1['pod']['home_dir']  + "/" + d1['images']['vex'] + '";'
+				lab_conf.append(str1)
 			elif i=='vrr':
 				str1="#undef VRRDISK"
 				lab_conf.append(str1)
@@ -1600,7 +1606,7 @@ def write_ssh_config(d1):
 	else:
 		# creating entry for VMM server
 		file1.append("host %s" %('vmm'))
-		file1.append("    hostname %s:22" %(d1['pod']['vmmserver']))
+		file1.append("    hostname %s" %(d1['pod']['vmmserver']))
 		file1.append("    user %s" %(d1['pod']['user']))
 		file1.append(identity_file)
 		file1.append("   ")
@@ -2009,6 +2015,8 @@ def make_junos_config(d1,i):
 		retval=make_vqfx_config(d1,i)
 	elif d1['vm'][i]['os']=='vsrx':
 		 retval=make_vsrx_config(d1,i)
+	elif d1['vm'][i]['os']=='vex':
+		 retval=make_vex_config(d1,i)
 	elif d1['vm'][i]['os']=='vrr':
 		 retval=make_vrr_config(d1,i)
 	elif d1['vm'][i]['os']=='evo':
@@ -2164,6 +2172,33 @@ def make_vsrx_config(d1,i):
 	retval.append('};')
 	return retval
 
+def make_vex_config(d1,i):
+	retval=[]
+	mgmt_bridge=d1['vm'][i]['interfaces']['mgmt']['bridge']
+	config_dir=d1['pod']['home_dir'] + '/vm/' + d1['name'] + "/"
+	# config_dir=param1.home_dir + d1['pod']['user'] + '/' + d1['name'] + "/"
+	intf_list=[]
+	# print("make config for srx ",i)
+	retval.append('vm "'+i+'" {')
+	retval.append('   hostname "'+i+'";')
+	retval.append('      VEXDISK')
+	retval.append('      memory 16384;')
+	retval.append('      ncpus 4;')
+	retval.append('      setvar "+qemu_args" "-cpu host,+vmx";')
+	# retval.append('      setvar "qemu_args" "-cpu qemu64,+vmx,+ssse3,+sse4_1,+sse4_2,+aes,+avx,+pat,+pclmulqdq,+rdtscp,+syscall,+tsc-deadline,+x2apic,+xsave";')
+	retval.append("         install \"" + config_dir + i + ".conf\" \"/root/junos.base.conf\";")
+	retval.append('      interface "vio0" { bridge "' + mgmt_bridge + '"; };')
+	# print(intf_list)
+	for j in d1['vm'][i]['interfaces'].keys():
+		if 'ge' in j:
+			intf_list.append(j)	
+	intf_list.sort()
+	for j in intf_list:
+		intf_name = "vio" + str(int(j.split("/")[2]) + 1)
+		retval.append('      interface "' +  intf_name + '" { bridge "' + d1['vm'][i]['interfaces'][j]['bridge'] + '";};')
+	retval.append('};')
+	return retval
+
 def make_vrr_config(d1,i):
 	retval=[]
 	mgmt_bridge=d1['vm'][i]['interfaces']['mgmt']['bridge']
@@ -2184,3 +2219,62 @@ def make_vrr_config(d1,i):
 	retval.append('      interface "em1" { bridge "' + em1_bridge + '"; };')
 	retval.append('};')
 	return retval
+
+def init_junos(d1):
+	print("this is for init junos")
+	list_of_jvm=[]
+	for i in d1['vm'].keys():
+		if d1['vm'][i]['os'] == 'vex':
+			list_of_jvm.append(i)
+	if list_of_jvm:
+		print("list of virtual junos ",list_of_jvm)
+		for i in list_of_jvm:
+			send_init(d1,i)
+
+def send_init(d1,i):
+	status=0
+	my_hash_root = md5_crypt.hash(d1['junos_login']['password'])
+	my_hash = md5_crypt.hash(d1['junos_login']['password'])
+	cmd1="vmm serial -t " + i
+	ip_mgmt = d1['vm'][i]['interfaces']['mgmt']['ipv4']
+	br_mgmt = d1['vm'][i]['interfaces']['mgmt']['bridge']
+	for j in d1['vm']['gw']['interfaces'].keys():
+		if br_mgmt in d1['vm']['gw']['interfaces'][j]['bridge']:
+			gateway4=d1['vm']['gw']['interfaces'][j]['ipv4'].split('/')[0]
+			status=1
+	if status:
+		# ssh=sshconnect(d1)
+		c1="ssh vmm 'vmm serial -t {}'" + i
+		print("configuring ",i)
+		# if d1['vm'][i]['os'] == 'vex':
+		s_e = [
+				["","login:"],
+				["root","root@"],
+				["cli","root>"],
+				["edit","root#"],
+				["delete interfaces fxp0","root#"],
+				["delete chassis","root#"],
+				["delete protocols","root#"],
+				["delete system processes dhcp-service","root#"],
+				["set system host-name " + i,"root#"],
+				["set system root-authentication encrypted-password \"" + my_hash_root + "\"","root#"],
+				["set system services ssh","root#"],
+				["set system services netconf ssh","root#"],
+				["set system login user " +  d1['junos_login']['login'] + " class super-user authentication encrypted-password \"" + my_hash + "\"","root#"],
+				["set interfaces fxp0.0 family inet address " + ip_mgmt,"root#"],
+				["set system management-instance","root#"],
+				["set routing-instances mgmt_junos routing-options static route 0.0.0.0/0 next-hop " + gateway4, "root#"],
+				["set chassis network-services enhanced-ip","root#"],
+				["set snmp community public authorization read-only","root#"],
+				["commit","root@"+i+"#"],
+				["exit","root@"+i+">"],
+				["exit","root@:~ #"],
+				["exit","login:"]
+			] 
+		p1=pexpect.spawn(c1)
+		for j in s_e:
+			print("send :",j[0])
+			p1.sendline(j[0])
+			print("expect : ",j[1])
+			p1.expect(j[1], timeout=120)
+		p1.close()

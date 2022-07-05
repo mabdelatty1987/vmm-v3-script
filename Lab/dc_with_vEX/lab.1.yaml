@@ -15,7 +15,6 @@ pod:
 images:
   gw: images/gw.qcow2
   ubuntu: images/ubuntu-20.04.qcow2
-  alpine: images/alpine.qcow2
   vmx_re: images/vmx/junos-vmx-x86-64-22.1R1.10.vmdk
   #vqfx_re: images/vqfx/jinstall-vqfx-10-f-20.2R1.10.vmdk
   vqfx_re: images/vqfx/jinstall-vqfx-10-f-21.3I.vmdk
@@ -312,113 +311,143 @@ vm:
         dns: 172.16.10.1
   svr1:
     type: pctiny
-    os: alpine
+    os: ubuntu
     vnc: yes
     interfaces:
       em0: 
+        bridge: lan1
+        ipv4: 172.16.10.201/24 
+      em1: 
         bridge: l1p2
-      em1:
-        bridge: l2p2
       em2:
-        bridge: l1p4
+        bridge: l2p2
       em3:
+        bridge: l1p4
+      em4:
         bridge: l1p5
   svr2:
     type: pctiny
-    os: alpine
+    os: ubuntu
     vnc: yes
     interfaces:
       em0: 
-        bridge: l1p3
+        bridge: lan1
+        ipv4: 172.16.10.202/24 
       em1: 
-        bridge: l2p3
+        bridge: l1p3
       em2: 
-        bridge: l2p4
+        bridge: l2p3
       em3: 
+        bridge: l2p4
+      em4: 
         bridge: l2p5
   svr3:
     type: pctiny
-    os: alpine
+    os: ubuntu
     vnc: yes
     interfaces:
       em0: 
-        bridge: l3p2
+        bridge: lan1
+        ipv4: 172.16.10.203/24 
       em1: 
-        bridge: l4p2
+        bridge: l3p2
       em2: 
-        bridge: l3p4
+        bridge: l4p2
       em3: 
+        bridge: l3p4
+      em4: 
         bridge: l3p5
   svr4:
     type: pctiny
-    os: alpine
+    os: ubuntu
     vnc: yes
     interfaces:
       em0: 
-        bridge: l3p3
+        bridge: lan1
+        ipv4: 172.16.10.204/24 
       em1: 
-        bridge: l4p3
+        bridge: l3p3
       em2: 
-        bridge: l4p4
+        bridge: l4p3
       em3: 
+        bridge: l4p4
+      em4: 
         bridge: l4p5
   svr5:
     type: pctiny
-    os: alpine
+    os: ubuntu
     vnc: yes
     interfaces:
       em0: 
-        bridge: sw1p3
+        bridge: lan1
+        ipv4: 172.16.10.205/24 
       em1: 
-        bridge: sw2p3
+        bridge: sw1p3
       em2: 
+        bridge: sw2p3
+      em3: 
         bridge: sw1p7
   svr6:
     type: pctiny
-    os: alpine
+    os: ubuntu
     vnc: yes
     interfaces:
       em0: 
-        bridge: sw1p4
+        bridge: lan1
+        ipv4: 172.16.10.206/24 
       em1: 
-        bridge: sw2p4
+        bridge: sw1p4
       em2: 
+        bridge: sw2p4
+      em3: 
         bridge: sw2p7
   svr7:
     type: pctiny
-    os: alpine
+    os: ubuntu
     vnc: yes
     interfaces:
       em0: 
-        bridge: sw1p5
+        bridge: lan1
+        ipv4: 172.16.10.207/24 
       em1: 
+        bridge: sw1p5
+      em2: 
         bridge: sw2p5
   svr8:
     type: pctiny
-    os: alpine
+    os: ubuntu
     vnc: yes
     interfaces:
       em0: 
-        bridge: sw1p6
+        bridge: lan1
+        ipv4: 172.16.10.208/24
       em1: 
+        bridge: sw1p6
+      em2: 
         bridge: sw2p6
   svr9:
     type: pctiny
-    os: alpine
+    os: ubuntu
     vnc: yes
     interfaces:
       em0: 
-        bridge: l5p5
+        bridge: lan1
+        ipv4: 172.16.10.209/24
       em1: 
-        bridge: l5p6
+        bridge: l5p5
       em2: 
+        bridge: l5p6
+      em3: 
         bridge: l5p7
   svr10:
     type: pctiny
-    os: alpine
+    os: ubuntu
     vnc: yes
     interfaces:
       em0: 
+        bridge: lan1
+        ipv4: 172.16.10.210/24
+      em1: 
         bridge: vxp1
   lxc1:
     type: pcsmall
@@ -426,7 +455,9 @@ vm:
     vnc: yes
     interfaces:
       em0: 
-        bridge: l1p7
+        bridge: lan1
+        ipv4: 172.16.10.211/24 
+        gateway: 172.16.10.1
       em1: 
         bridge: l1p6
       em2: 
@@ -437,19 +468,25 @@ vm:
     vnc: yes
     interfaces:
       em0: 
-        bridge: l2p7
+        bridge: lan1
+        ipv4: 172.16.10.212/24 
+        gateway: 172.16.10.1
       em1: 
         bridge: l3p6
       em2: 
         bridge: l4p6
   svr11:
     type: pctiny
-    os: alpine
+    os: ubuntu
     vnc: yes
     interfaces:
-      em0:
+      em0: 
+        bridge: lan1
+        ipv4: 172.16.10.213/24 
+      em1:
         bridge: ext
         ipv4: 172.16.12.10/24
         gateway4: 172.16.12.1
+        dns: 172.16.12.1
   
   

@@ -40,6 +40,8 @@ if config1:
 			lib1.write_ssh_config(d1)
 		elif config1['cmd'] == 'init_junos':
 			lib1.init_junos(d1)
+		elif config1['cmd'] == 'config_junos':
+			lib1.config_junos(d1)
 		else:
 			print("wrong argument")
 	else:

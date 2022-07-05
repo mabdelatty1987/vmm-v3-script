@@ -1,0 +1,49 @@
+sudo rm /etc/network/interfaces
+
+cat << EOF | sudo tee /etc/network/interfaces
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet manual
+
+auto eth1
+iface eth1 inet manual
+
+auto bond0
+iface bond0 inet static
+address 192.168.101.101/24
+gateway 192.168.101.1
+bond-slaves eth0 eth1
+bond-mode 802.3ad
+EOF
+
+sudo hostname svr1
+hostname | sudo tee /etc/hostname
+
+
+
+sudo rm /etc/network/interfaces
+
+cat << EOF | sudo tee /etc/network/interfaces
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet manual
+
+auto eth1
+iface eth1 inet manual
+
+auto bond0
+iface bond0 inet static
+address 192.168.101.103/24
+gateway 192.168.101.1
+bond-slaves eth0 eth1
+bond-mode 802.3ad
+EOF
+
+sudo hostname svr3
+hostname | sudo tee /etc/hostname
+
+

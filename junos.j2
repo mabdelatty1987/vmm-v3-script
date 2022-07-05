@@ -42,9 +42,6 @@ system {
             interactive-commands any;
         }
     }
-    ntp {
-        server {{ ntpserver }};
-    }
     {% if type == 'vqfx' -%}
     extensions {
         providers {
@@ -69,12 +66,22 @@ routing-instances {
         }
     }
 }
-{% if type == 'vmx' -%}
+{% if type == 'vmx' or type == 'vex' -%}
 chassis {
    network-services enhanced-ip;
 }
 interfaces {
    fxp0 {
+      unit 0 {
+         family inet {
+             address {{mgmt_ip}};
+         }
+      }
+    }
+}
+{% elif type == 'evo'  -%}
+interfaces {
+   re0:mgmt-0 {
       unit 0 {
          family inet {
              address {{mgmt_ip}};
@@ -236,7 +243,9 @@ protocols {
 		{% if protocols[prot] -%}
 		{% for intf in protocols[prot] -%}
 		{% if prot == 'lldp' -%}
+        {% if intf != 'lo0' -%}
 		interface  {{intf}};
+        {% endif -%}
 		{% else -%}
 		{% if prot == 'isis' -%}
 		{% if protocols[prot][intf] -%}
@@ -262,6 +271,11 @@ protocols {
 	}
 	{% endfor -%}
 	{% endif -%}
+}
+protocols {
+   lldp {
+      delete: interface all;
+   }
 }
 {% endif -%}
 

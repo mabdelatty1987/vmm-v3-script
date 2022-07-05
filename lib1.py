@@ -20,6 +20,7 @@ from pathlib import Path
 import yaml
 import pexpect
 import pprint
+from scp import SCPClient
 #import json
  
 # from jnpr.junos import Device
@@ -301,11 +302,13 @@ def print_syntax():
 	print("  get_ip  : get IP information of the vm")
 	print("  set_gw  : setting gateway configuration")
 	print("  set_host  : setting ubuntu/centos configuration")
+	print("  init_junos  : initial configuration for vEX and vEVO")
+	print("  config_junos  : push configuration for vEX and vEVO")
 	print("if configuration file is not specified, then file lab.yaml must be present")
 
 def check_argv(argv):
 	retval={}
-	cmd_list=['upload','start','stop','get_serial','get_vga','get_ip','list','config','test']
+	cmd_list=['upload','start','stop','get_serial','get_vga','get_ip','list','config','test','init_junos','config_junos']
 	if len(argv) == 1:
 		print_syntax()
 	else:
@@ -368,7 +371,7 @@ def checking_config_syntax(d1):
 
 def get_ip(d1,vm):
 	if d1['pod']['type'] == 'vmm':
-		ssh=sshconnect(d1)
+		ssh=ƒ(d1)
 		#print('-----')
 		#print(" of VM")
 		cmd1="vmm list"
@@ -406,27 +409,53 @@ def sshconnect(d1):
 	return ssh
 
 def connect_to_gw(d1):
-	host='gw'
-	host_ip = get_ip_vm(d1,host)
-	user_id = get_ssh_user(d1,host).strip().split()[1]
+	if not 'gw_ip' in d1.keys():
+		d1['gw_ip'] = get_ip_vm(d1,'gw')
+	user_id = get_ssh_user(d1,'gw').strip().split()[1]
+	passwd='pass01'
 	if 'jumpserver' in d1['pod'].keys():
 		jumphost=paramiko.SSHClient()
 		jumphost.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 		jumphost.connect(hostname=d1['pod']['jumpserver'],username=d1['pod']['user'],password=d1['pod']['adpassword'])
 		jumphost_transport=jumphost.get_transport()
 		src_addr=(d1['pod']['jumpserver'],22)
-		dest_addr=(host_ip,22)
+		dest_addr=(d1['gw_ip'],22)
 		jumphost_channel = jumphost_transport.open_channel("direct-tcpip", dest_addr, src_addr)
 		ssh=paramiko.SSHClient()
 		ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 		# ssh.connect(hostname=d1['pod']['vmmserver'],username=d1['pod']['user'],password=d1['pod']['unixpassword'],sock=jumphost_channel)
-		ssh.connect(hostname=host_ip,username=user_id,password='pass01',sock=jumphost_channel)
+		ssh.connect(hostname=host_ip,username=user_id,password=passwd,sock=jumphost_channel)
 	else:
 		ssh=paramiko.SSHClient()
 		ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-		ssh.connect(hostname=host_ip,username=user_id,password='pass01')
+		ssh.connect(hostname=d1['gw_ip'],username=user_id,password=passwd)
 	return ssh
 
+def get_mgmt_ip(d1,i):
+	if d1['vm'][i]['type']=='junos':
+		ip_vm = d1['vm'][i]['interfaces']['mgmt']['ipv4'].split('/')[0]
+	else:
+		ip_vm = d1['vm'][i]['interfaces']['em0']['ipv4'].split('/')[0]
+	return ip_vm
+
+def get_user(d1,i):
+	if d1['vm'][i]['type']=='junos':
+		user_id = d1['junos_login']['login']
+		passwd = d1['junos_login']['password']
+	elif d1['vm'][i]['os']=='ubuntu':
+		user_id = 'ubuntu'
+		passwd = 'pass01'
+	elif d1['vm'][i]['os']=='centos':
+		user_id = 'centos'
+		passwd = 'pass01'
+	elif d1['vm'][i]['os']=='alpine':
+		user_id = 'alpine'
+		passwd = 'pass01'
+	else:
+		user_id = 'admin'
+		passwd = 'pass01'
+
+	return user_id,passwd
 
 def get_vga(d1,vm=""):
 	if d1['pod']['type'] == 'vmm':
@@ -478,34 +507,10 @@ def get_ip_vm(d1,i):
 		stdin,stdout,sstderr=ssh.exec_command(cmd1)
 		j = stdout.readlines()
 		ssh.close()
-		#print("value of j",j)
-		x='''
-		if not j:
-			cmd1="vmm args " + i + " | grep \"ip \""
-			stdin,stdout,sstderr=ssh.exec_command(cmd1)
-			j = stdout.readlines()
-			#print("value of j",j)
-		'''
-		# print(j)
-		#for x in j:
-		#	list1 = x.rstrip().split()
-		#	print("1 %s 2 %s "%(list1[0],list1[1]))
 		_,retval= j[0].rstrip().split()
 		if retval == 'None':
 			retval = "No External IP"
-		
-		#print(list1)
-		#print("list1 ",list1)
-		#if len(list1)==2:
-		#	retval = list1[1]
-		#elif len(list1)==3:
-		#	retval = list1[2]
-		#else:
-		#	retval = "No External IP"
-		
-
 		return retval
-
 	elif d1['pod']['type'] == 'kvm':
 		print("not implemented for this type")
 		return ""
@@ -677,7 +682,6 @@ def get_dhcp_config(d1):
 	return dhcp_config, net_config
 
 def get_subnet(ipv4):
-
 	mask_full = (0xFF << 24 ) + (0xFF << 16) + (0xFF << 8) + 0xFF
 	b1,b2,b3,b4 = ipv4.split('/')[0].split('.')
 	ip_bin= (int(b1) << 24) + (int(b2) << 16) + (int(b3) << 8) + int(b4)
@@ -714,14 +718,9 @@ def set_gw(d1):
 	line_to_file += host_config
 	line_to_file += ['127.0.1.1 gw']
 	line_to_file += ['" | sudo tee /etc/hosts' ]
-	# line_to_file += ['sudo apt install -y isc-dhcp-server']
-	# line_to_file += ['sudo snap install novnc']
 	line_to_file += ['echo "']
 	line_to_file += dhcp_config
 	line_to_file += ['" | sudo tee /etc/dhcp/dhcpd.conf' ]
-	# line_to_file += ['" | sudo tee /etc/dnsmasq.conf' ]
-	# line_to_file += ['sudo systemctl stop dnsmasq']
-	#line_to_file += ['sudo systemctl stop isc-dhcp-server']
 	line_to_file +=['rm -f ~/.ssh/*']
 	line_to_file +=['echo "' + d1['pod']['ssh_key'] + '" | tee .ssh/authorized_keys']
 	line_to_file +=['echo "' + d1['pod']['ssh_key_priv'] + '" | tee .ssh/id_rsa']
@@ -729,17 +728,6 @@ def set_gw(d1):
 	line_to_file += ['echo "']
 	line_to_file += net_config
 	line_to_file += ['" | sudo tee /etc/netplan/02_net.yaml' ]
-	# line_to_file +=	['sudo sed -i -e "s/#DNS=/DNS=%s/" /etc/systemd/resolved.conf'%('66.129.233.81')]
-	#line_to_file += ['sudo rm /etc/resolv.conf']
-	#line_to_file += ['echo "']
-	#line_to_file += ['nameserver %s' %(param1.jnpr_dns1)]
-	#line_to_file += ['nameserver %s' %(param1.jnpr_dns2)]
-	#line_to_file += ['" | tee testing.txt' ]
-	#line_to_file += ['sudo systemctl enable systemd-resolved.service']
-	# line_to_file += ['sudo systemctl restart systemd-resolved.service']
-	#line_to_file += ['sudo ln -s /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf']
-	#line_to_file += ['sudo hostname gw']
-	#line_to_file += ['hostname | sudo tee /etc/hostname']
 	line_to_file += ['sudo rm /etc/resolv.conf']
 	line_to_file += ['echo "']
 	line_to_file += ['nameserver {}'.format(param1.jnpr_dns1)]
@@ -751,76 +739,16 @@ def set_gw(d1):
 	line_to_file += ['']
 	t1,t2 = create_novnc(d1)
 	line_to_file += t1
-	#line_to_file += ['cat << EOF | sudo tee -a /etc/rc.local']
-	#line_to_file += ['/usr/local/bin/startup.sh']
-	#line_to_file += ['EOF']
 	line_to_file += ['echo "/usr/local/bin/startup.sh" | sudo tee -a /etc/rc.local']
 	line_to_file += ['']
-	#line_to_file += ['sleep 5']
-	#line_to_file += ['sleep 2']
-	#line_to_file += ['sudo systemctl restart dnsmasq']
-	#line_to_file += ['sleep 5']
-	#line_to_file += ['nohup /usr/local/bin/startup.sh &']
-	#line_to_file += ['sleep 5']
-	#line_to_file += ['sudo cp ~/data1.txt /etc/resolv.conf' ]
-	#line_to_file +=	['sudo sed -i -e "s/#FallbackDNS=/FallBackDNS=%s/" /etc/systemd/resolved.conf'%('66.129.233.82')]
 	line_to_file +=	['sudo sed -i -e "s/#DNS=/DNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns1)]
 	line_to_file +=	['sudo sed -i -e "s/#FallbackDNS=/FallbackDNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns2)]
 	line_to_file += ['']
-	#line_to_file += ['sleep 5']
-	# line_to_file += ['echo "/usr/local/bin/startup.sh" | sudo tee -a /etc/rc.local']
 	line_to_file += ['sleep 2']
 	line_to_file += ['sudo netplan apply' ]
 	line_to_file += ['sudo systemctl restart rc-local.service']
 	line_to_file += ['sudo systemctl restart isc-dhcp-server']
 	line_to_file += ['sudo systemctl restart systemd-resolved.service']
-	#line_to_file += ['sleep 5']
-	# line_to_file += ['echo "']
-	# line_to_file += ['net.ipv4.ip_forward=1']
-	# line_to_file += ['net.ipv6.conf.all.forwarding=1']
-	# line_to_file += ['" | sudo tee -a /etc/sysctl.conf']
-	# line_to_file += ['sudo sysctl  -f /etc/sysctl.conf ']
-	# line_to_file += ['echo "#!/bin/bash']
-	# line_to_file += ['sudo iptables -t nat -A POSTROUTING  -o eth0 -j MASQUERADE']
-	# line_to_file += ['" | sudo tee -a /etc/rc.local']
-	# line_to_file += ['sudo chmod +x /etc/rc.local']
-	# line_to_file += ['echo "']
-	# line_to_file += ['[Unit]']
-	# line_to_file += ['Description=/etc/rc.local Compatibility']
-	# line_to_file += ['ConditionPathExists=/etc/rc.local']
-	# line_to_file += ['[Service]']
-	# line_to_file += ['Type=forking']
-	# line_to_file += ['ExecStart=/etc/rc.local start']
-	# line_to_file += ['TimeoutSec=0']
-	# line_to_file += ['StandardOutput=tty']
-	# line_to_file += ['RemainAfterExit=yes']
-	# line_to_file += ['SysVStartPriority=99']
-	# line_to_file += ['[Install]']
-	# line_to_file += ['WantedBy=multi-user.target']
-	# line_to_file += ['"| sudo tee /etc/systemd/system/rc-local.service']
-	# line_to_file += ['sudo chmod +x /etc/systemd/system/rc-local.service']
-	# line_to_file += ['sudo systemctl enable rc-local.service']
-	# line_to_file += ['sudo systemctl start rc-local.service']	
-	# line_to_file += ['if [ -f /usr/local/bin/startup.sh ]']
-	# line_to_file += ['then']
-	# line_to_file += ['echo "']
-	# line_to_file += ['[Unit]']
-	# line_to_file += ['Description=/usr/local/bin/startup.sh']
-	# line_to_file += ['ConditionPathExists=/usr/local/bin/startup.sh']
-	# line_to_file += ['[Service]']
-	# line_to_file += ['Type=forking']
-	# line_to_file += ['ExecStart=/usr/local/bin/startup.sh start']
-	# line_to_file += ['TimeoutSec=0']
-	# line_to_file += ['StandardOutput=tty']
-	# line_to_file += ['RemainAfterExit=yes']
-	# line_to_file += ['SysVStartPriority=99']
-	# line_to_file += ['[Install]']
-	# line_to_file += ['WantedBy=multi-user.target']
-	# line_to_file += ['"| sudo tee /etc/systemd/system/startup.service']
-	# line_to_file += ['sudo chmod +x /etc/systemd/system/startup.service']
-	# line_to_file += ['sudo systemctl enable startup.service']
-	# line_to_file += ['sudo systemctl start startup.service']	
-	# line_to_file += ['fi']	
 	#line_to_file += ['sudo reboot']
 	f1=param1.tmp_dir + 'set_gw.sh'
 	write_to_file(f1,line_to_file)
@@ -833,9 +761,6 @@ def set_gw(d1):
 	cmd1="chmod +x /home/ubuntu/set_gw.sh"
 	cmd1='ls -la'
 	s0,s1,s2=ssh.exec_command(cmd1)
-	#print(s1)
-	#ssh.close()
-	#ssh=connect_to_gw(d1)
 	cmd1="bash /home/ubuntu/set_gw.sh"
 	print("executing set_gw.sh")
 	ssh.exec_command(cmd1)
@@ -886,28 +811,13 @@ def set_host(d1):
 	host_ip = get_ip_vm(d1,host)
 	user_id = get_ssh_user(d1,host).strip().split()[1]
 	gw_ip = host_ip
-	if 'jumpserver' in d1['pod'].keys():
-		jumphost=paramiko.SSHClient()
-		jumphost.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-		jumphost.connect(hostname=d1['pod']['jumpserver'],username=d1['pod']['user'],password=d1['pod']['adpassword'])
-		jumphost_transport=jumphost.get_transport()
-		src_addr=(d1['pod']['jumpserver'],22)
-		dest_addr=(host_ip,22)
-		jumphost_channel = jumphost_transport.open_channel("direct-tcpip", dest_addr, src_addr)
-		ssh=paramiko.SSHClient()
-		ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-		# ssh.connect(hostname=d1['pod']['vmmserver'],username=d1['pod']['user'],password=d1['pod']['unixpassword'],sock=jumphost_channel)
-		ssh.connect(hostname=host_ip,username=user_id,password='pass01',sock=jumphost_channel)
-	else:
-		ssh=paramiko.SSHClient()
-		ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-		ssh.connect(hostname=host_ip,username=user_id,password='pass01')
+	ssh = connect_to_gw(d1)
 	host_config = get_hosts_config(d1)
 	print("list of host ",list_hosts)
 	for i in list_hosts:
 		print("configuring host %s" %(i))
 		intf=d1['vm'][i]['interfaces']
-		if d1['vm'][i]['os'] == 'bridge':
+		if d1['vm'][i]['os'] == 'bridge' or d1['vm'][i]['os'] == 'alpine':
 			line_to_file = ['#!/bin/sh','echo "']
 		else:
 			line_to_file = ['#!/bin/bash','echo "']
@@ -938,62 +848,31 @@ def set_host(d1):
 				else:
 					if 'ipv4' in intf[j].keys():
 						line_to_file +=	['      addresses: [ {} ]'.format(intf[j]['ipv4'])]
-						#if 'gateway4' in intf[j].keys():
-							# line_to_file +=	['      gateway4: {}'.format(intf[j]['gateway4'])]
 						line_to_file += ['      nameservers:']
 						line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
-						#line_to_file += ['      routes:']
-						#line_to_file += ['        - to: default']
-						#line_to_file += ['          via: {}'.format(intf[j]['gateway4'])]
-						#line_to_file += ['          metric: 1']
-					#if 'dns' in intf[j].keys():
-					#	line_to_file += ['      nameservers:']
-					#	line_to_file +=	['        addresses: [ {} ]'.format(intf[j]['dns'])]
-					#	line_to_file +=	['        addresses: [ {} ]'.format(param1.jnpr_dns1)]
 						if 'static' in intf[j].keys():
-							# list_of_static = intf[j]['static']
-							# line_to_file += ['      routes:']
-							#list_of_static = intf[j]['static']
 							line_to_file += ['      routes:']
-							# for k in list_of_static:
 							for k in intf[j]['static']:
 								line_to_file += ['        - to: {}'.format(k['to'])]
 								line_to_file += ['          via: {}'.format(k['via'])]
 								line_to_file += ['          metric: 1']
 			if br_intf:
 				line_to_file +=	['  bridges:']
-				#print('br_intf :',br_intf)
 				for j in br_intf:
-					#print("data bridge ",j)
 					line_to_file +=	['    {}:'.format(j['as_bridge'])]
 					line_to_file +=	['      dhcp4: false']
 					line_to_file +=	['      interfaces: [{}]'.format(j['intf'])]
 					if 'ipv4' in j.keys():
 						line_to_file +=	['      addresses: [ {} ]'.format(j['ipv4'])]
-						#if 'gateway4' in j.keys():
 						line_to_file += ['      nameservers:']
 						line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
-						#line_to_file += ['      routes:']
-						#line_to_file += ['        - to: default']
-						#line_to_file += ['          via: {}'.format(j['gateway4'])]
-						#line_to_file += ['          metric: 1']
-					#	line_to_file +=	['      gateway4: {}'.format(j['gateway4'])]
-					#if 'dns' in j.keys():
-					#	line_to_file += ['      nameservers:']
-					#	line_to_file +=	['        addresses: [ {} ]'.format(param1.jnpr_dns1)]
 					if 'static' in j.keys():
-						#list_of_static = j['static']
-						#line_to_file += ['      routes:']
-						#list_of_static = intf[j]['static']
-						#for k in list_of_static:
 						line_to_file += ['      routes:']
 						for k in j['static']:
 							line_to_file += ['        - to: {}'.format(k['to'])]
 							line_to_file += ['          via: {}'.format(k['via'])]
 							line_to_file += ['          metric: 1']
 			line_to_file += ['" | sudo tee /etc/netplan/01_net.yaml']
-			#line_to_file +=	['sudo sed -i -e "s/#DNS=/DNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns1)]
-			#line_to_file +=	['sudo sed -i -e "s/#FallbackDNS=/FallbackDNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns2)]
 			line_to_file += ['uuidgen  | sed -e \'s/-//g\' | sudo tee /etc/machine-id']
 		elif d1['vm'][i]['os'] == 'desktop':
 			status=False
@@ -1015,34 +894,15 @@ def set_host(d1):
 						line_to_file +=	['      addresses: [ {} ]'.format(intf[j]['ipv4'])]
 						line_to_file += ['      nameservers:']
 						line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
-						#if 'gateway4' in intf[j].keys():
-						#	# line_to_file +=	['      gateway4: {}'.format(intf[j]['gateway4'])]
-						#	line_to_file += ['      nameservers:']
-						#	line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
-						#	line_to_file += ['      routes:']
-						#	line_to_file += ['        - to: default']
-						#	line_to_file += ['          via: {}'.format(intf[j]['gateway4'])]
-						#	line_to_file += ['          metric: 1']
-						#if 'dns' in intf[j].keys():
-						#	line_to_file += ['      nameservers:']
-						#	line_to_file +=	['        addresses: [ {} ]'.format(intf[j]['dns'])]
-						#	line_to_file +=	['        addresses: [ {} ]'.format(param1.jnpr_dns1)]
 						if 'static' in intf[j].keys():
-							# list_of_static = intf[j]['static']
-							# line_to_file += ['      routes:']
-							#list_of_static = intf[j]['static']
-							# for k in list_of_static:
 							for k in intf[j]['static']:
 								line_to_file += ['        - to: {}'.format(k['to'])]
 								line_to_file += ['          via: {}'.format(k['via'])]
 								line_to_file += ['          metric: 1']
 				line_to_file += ['" | sudo tee /etc/netplan/01_net.yaml']
-				#line_to_file +=	['sudo sed -i -e "s/#DNS=/DNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns1)]
-				#line_to_file +=	['sudo sed -i -e "s/#FallbackDNS=/FallbackDNS={}/" /etc/systemd/resolved.conf'.format(param1.jnpr_dns2)]
 				line_to_file += ['uuidgen  | sed -e \'s/-//g\' | sudo tee /etc/machine-id']
 		elif d1['vm'][i]['os'] == 'centos':
 			for j in intf.keys():
-				#line_to_file +=	['sudo rm /etc/sysconfig/network-scripts/ifcfg-{}'.format(j.replace("em","eth"))]
 				line_to_file +=	['echo "DEVICE={}'.format(j.replace("em","eth"))]
 				line_to_file +=	['TYPE=ETHERNET']
 				if 'ipv4' in intf[j].keys():
@@ -1054,12 +914,10 @@ def set_host(d1):
 					if 'gateway4' in intf[j].keys():
 						line_to_file +=	['GATEWAY={}'.format(intf[j]['gateway4'])]
 					if 'dns' in intf[j].keys():
-						#line_to_file +=	['DNS1={}'.format(intf[j]['dns'])]
 						line_to_file +=	['DNS1={}'.format(param1.jnpr_dns1)]
 					line_to_file += ['" | sudo tee /etc/sysconfig/network-scripts/ifcfg-{}'.format(j.replace("em","eth"))]
 					if 'static' in intf[j].keys():
 						list_of_static = intf[j]['static']
-						#line_to_file +=	['sudo rm /etc/sysconfig/network-scripts/route-{}'.format(j.replace("em","eth"))]
 						line_to_file +=	['echo "']
 						for k in list_of_static:
 							line_to_file +=	['{} via {} dev {}'.format(k['to'],k['via'],j.replace("em","eth"))]
@@ -1080,7 +938,6 @@ def set_host(d1):
 					if 'gateway4' in intf[j].keys():
 						line_to_file +=	['  gateway {}'.format(intf[j]['gateway4'])]
 					if 'dns' in intf[j].keys():
-						#line_to_file +=	['  dns-nameservers {}'.format(intf[j]['dns'])]
 						line_to_file +=	['  dns-nameservers {}'.format(param1.jnpr_dns1)]
 					if 'static' in intf[j].keys():
 						list_of_static = intf[j]['static']
@@ -1090,6 +947,19 @@ def set_host(d1):
 				else:
 					line_to_file +=	['iface {} inet manual'.format(j.replace("em","eth"))]
 			line_to_file += ['" | sudo tee /etc/network/interfaces.d/01_net']
+		elif d1['vm'][i]['os'] == 'alpine':
+			line_to_file +=	['sudo rm /etc/network/interface']
+			line_to_file +=	['echo "']
+			line_to_file +=	['auto lo']
+			line_to_file +=	['interface lo inet loopback']
+			line_to_file +=	['auto eth0']
+			line_to_file +=	['interface eth0 inet static']
+			line_to_file +=	['  address {}'.format(intf['em0']['ipv4'])]
+			if 'gateway4' in intf['em0'].keys():
+				line_to_file +=	['  gateway {}'.format(intf['em0']['gateway4'])]
+			if 'dns' in intf['em0'].keys():
+				line_to_file +=	['  dns-nameservers {}'.format(param1.jnpr_dns1)]
+			intf_list = d1['vm'][i]['interfaces']
 		elif d1['vm'][i]['os'] == 'bridge':
 			line_to_file +=	['sudo rm /etc/network/interface']
 			line_to_file +=	['echo "']
@@ -1101,11 +971,8 @@ def set_host(d1):
 			if 'gateway4' in intf['em0'].keys():
 				line_to_file +=	['  gateway {}'.format(intf['em0']['gateway4'])]
 			if 'dns' in intf['em0'].keys():
-				# line_to_file +=	['  dns-nameservers {}'.format(intf['em0']['dns'])]
 				line_to_file +=	['  dns-nameservers {}'.format(param1.jnpr_dns1)]
 			intf_list = d1['vm'][i]['interfaces']
-			#intf_list.pop('em0')
-			#print("intf list ",intf_list)
 			brtmp1={}
 			for x in intf_list.keys():
 				if x != 'em0':
@@ -1127,32 +994,6 @@ def set_host(d1):
 				line_to_file += ['  bridge-ports {}'.format(tmp1)]
 				line_to_file += ['  bridge-stp 0']
 			line_to_file +=['" | sudo tee /etc/network/interfaces']
-			xxx="""
-			tmp1 = list(d1['vm'][i]['interfaces'].keys())
-			_ = tmp1.pop(0)
-			tmp2=[]
-			for j in tmp1:
-				tmp2.append(j.replace('em','eth'))
-			intf_list=[]
-			while tmp2:
-				tmp3 = []
-				tmp3.append(tmp2.pop(0))
-				tmp3.append(tmp2.pop(0))
-				intf_list.append(tmp3)
-			for j in intf_list:
-				line_to_file +=	['auto {}'.format(j[0])]
-				line_to_file +=	['interface {} inet manual'.format(j[0])]
-				line_to_file +=	['  mtu 9000']
-				line_to_file +=	['auto {}'.format(j[1])]
-				line_to_file +=	['interface {} inet manual'.format(j[1])]
-				line_to_file +=	['  mtu 9000']
-				br_name = '{}{}'.format(j[0],j[1])
-				line_to_file +=	['auto {}'.format(br_name)]
-				line_to_file +=	['interface {} inet manual'.format(br_name)]
-				line_to_file +=	['  post-up echo 0x4000 > /sys/class/net/{}/bridge/group_fwd_mask'.format(br_name)]
-				line_to_file +=	['  bridge-ports {} {}'.format(j[0],j[1])]
-				line_to_file +=	['  bridge-stp 0']
-			line_to_file += ['" | sudo tee /etc/network/interfaces'] """
 		line_to_file += ['echo "Host *']
 		line_to_file += ['   StrictHostKeyChecking no']
 		line_to_file += ['"| tee ~/.ssh/config']
@@ -1160,15 +1001,7 @@ def set_host(d1):
 		line_to_file += ['sleep 2']
 		line_to_file += ['sudo reboot']
 		write_to_file(f1,line_to_file)
-		jumphost_transport2=ssh.get_transport()
-		src_addr2=(gw_ip,22)
-		host_ip2=d1['vm'][i]['interfaces']['em0']['ipv4'].split('/')[0]
-		dest_addr2=(host_ip2,22)
-		jumphost_channel2 = jumphost_transport2.open_channel("direct-tcpip", dest_addr2, src_addr2)
-		ssh2host = paramiko.SSHClient()
-		ssh2host.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-		user_id = get_ssh_user(d1,i).strip().split()[1]
-		ssh2host.connect(hostname=host_ip2,username=user_id,password='pass01',sock=jumphost_channel2)
+		ssh2host=connect_to_vm(d1,i)
 		sftp=ssh2host.open_sftp()
 		print("uploading file to %s" %(i))
 		sftp.put(f1,'set_host.sh')
@@ -1685,6 +1518,8 @@ def get_ssh_user(d1,i):
 			retval="   user admin"
 		elif 'bridge' in d1['vm'][i]['os']:
 			retval="   user alpine"
+		elif 'alpine' in d1['vm'][i]['os']:
+			retval="   user alpine"
 	return retval
 
 
@@ -1723,6 +1558,85 @@ def get_gateway4(d1,i):
 			gateway4 = d1['vm']['gw']['interfaces'][i]['ipv4'].split('/')[0]
 	return gateway4
 
+def create_junos_config(d1,i):
+	dummy1={}
+	dummy1['hostname']=i
+	dummy1['username']=d1['junos_login']['login']
+	dummy1['password']=md5_crypt.hash(d1['junos_login']['password'])
+	dummy1['ssh_key']=d1['pod']['ssh_key']
+	#dummy1['ntpserver']=d1['pod']['ntp']
+	if d1['vm'][i]['os'] == 'vmx' or d1['vm'][i]['os'] == 'mx960' or d1['vm'][i]['os'] == 'mx480' or d1['vm'][i]['os'] == 'mx240':
+		dummy1['type']='vmx'
+	elif d1['vm'][i]['os'] == 'vqfx':
+		dummy1['type']='vqfx'
+	elif d1['vm'][i]['os'] == 'vsrx':
+		dummy1['type']='vsrx'
+	elif d1['vm'][i]['os'] == 'vrr':
+		dummy1['type']='vrr'
+	elif d1['vm'][i]['os'] == 'vex':
+		dummy1['type']='vex'
+	elif d1['vm'][i]['os'] == 'evo':
+		dummy1['type']='evo'
+	# dummy1['gateway4']=d1['vm']['gw']['interfaces']['em1']['ipv4'].split('/')[0]
+	dummy1['gateway4'] = get_gateway4(d1,i)
+	dummy1['mgmt_ip']=d1['vm'][i]['interfaces']['mgmt']['ipv4']
+	dummy1['interfaces']=None
+	dummy1['protocols']=None
+	#dummy1['static']=[]
+	dummy1['rpm']={}
+	if 'bgpls' in d1['vm'][i].keys():
+		dummy1['bgpls']={'as' : d1['vm'][i]['bgpls']['as'],'local' : d1['vm'][i]['bgpls']['local']}
+	if 'pcep' in d1['vm'][i].keys():
+		if d1['vm'][i]['pcep']=='yes' or d1['vm'][i]['pcep']==True:
+			if 'pcep_server' in d1.keys():
+				dummy1['pcep']={'server': d1['pcep_server'],'local': d1['vm'][i]['interfaces']['lo0']['family']['inet'].split('/')[0] }
+	if 'paragon_ingest' in d1.keys():
+		dummy1['ingest']={'ip' : d1['paragon_ingest'],'source': d1['vm'][i]['interfaces']['lo0']['family']['inet'].split('/')[0]}
+	for j in d1['vm'][i]['interfaces'].keys():
+		if j != 'mgmt':
+			#if 'mtu' in  d1['vm'][i]['interfaces'][j].keys():
+			#	add_mtu(dummy1,j,d1['vm'][i]['interfaces'][j]['mtu'])
+			add_into_protocols(dummy1,'lldp',j,"")
+			if 'mtu' in d1['vm'][i]['interfaces'][j].keys():
+				add_mtu(dummy1,j,d1['vm'][i]['interfaces'][j]['mtu'])
+			if 'family' in d1['vm'][i]['interfaces'][j].keys():
+				if 'mpls' in d1['vm'][i]['interfaces'][j]['family'].keys():
+					add_into_protocols(dummy1,'mpls',j,"")
+				for k in d1['vm'][i]['interfaces'][j]['family'].keys():
+					if d1['vm'][i]['interfaces'][j]['family'][k]:
+						add_into_interfaces(dummy1,j,k,d1['vm'][i]['interfaces'][j]['family'][k])
+					else:
+						add_into_interfaces(dummy1,j,k,True)
+			if 'protocol' in d1['vm'][i]['interfaces'][j].keys():
+				#print("protocol found")
+				for k in d1['vm'][i]['interfaces'][j]['protocol'].keys():
+					if k == 'mpls':
+						pass
+					elif k == 'isis':
+						if d1['vm'][i]['interfaces'][j]['protocol'][k] == 'ptp':
+							option = 'point-to-point'
+						elif d1['vm'][i]['interfaces'][j]['protocol'][k] == 'passive':
+							option = 'passive'
+						else:
+							option = ""
+					else:
+						option = ""
+					#print("interface %s protocol %s option %s" %(j,k,option))
+					add_into_protocols(dummy1,k,j,option)
+			if 'rpm' in d1['vm'][i]['interfaces'][j].keys():
+				intf = j + ".0"
+				src = d1['vm'][i]['interfaces'][j]['rpm']['source']
+				dst = d1['vm'][i]['interfaces'][j]['rpm']['destination']
+				dummy1['rpm'].update({intf : { 'src': src, 'dst': dst }})
+			#if 'static' in d1['vm'][i]['interfaces'][j].keys():
+			#	for k in d1['vm'][i]['interfaces'][j]['static']:
+			#		d1['vm'][i]['interfaces'][j]['static'].append(
+			#			{'to': k['to'], 'via':k['via']}
+			#		)
+			#	add_into_route_options_static(dummy1,)
+	return dummy1
+
+
 def write_junos_config(d1):
 	data1=[]
 	#print("Junos config write")
@@ -1735,80 +1649,7 @@ def write_junos_config(d1):
 		f1.close()
 		for i in d1['vm'].keys():
 			if d1['vm'][i]['type'] == 'junos':
-				#print(d1['vm'][i])
-				dummy1={}
-				dummy1['hostname']=i
-				dummy1['username']=d1['junos_login']['login']
-				dummy1['password']=md5_crypt.hash(d1['junos_login']['password'])
-				dummy1['ssh_key']=d1['pod']['ssh_key']
-				#dummy1['ntpserver']=d1['pod']['ntp']
-				if d1['vm'][i]['os'] == 'vmx' or d1['vm'][i]['os'] == 'mx960' or d1['vm'][i]['os'] == 'mx480' or d1['vm'][i]['os'] == 'mx240':
-					dummy1['type']='vmx'
-				elif d1['vm'][i]['os'] == 'vqfx':
-					dummy1['type']='vqfx'
-				elif d1['vm'][i]['os'] == 'vsrx':
-					dummy1['type']='vsrx'
-				elif d1['vm'][i]['os'] == 'vrr':
-					dummy1['type']='vrr'
-				# dummy1['gateway4']=d1['vm']['gw']['interfaces']['em1']['ipv4'].split('/')[0]
-				dummy1['gateway4'] = get_gateway4(d1,i)
-				dummy1['mgmt_ip']=d1['vm'][i]['interfaces']['mgmt']['ipv4']
-				dummy1['interfaces']=None
-				dummy1['protocols']=None
-				#dummy1['static']=[]
-				dummy1['rpm']={}
-				if 'bgpls' in d1['vm'][i].keys():
-					dummy1['bgpls']={'as' : d1['vm'][i]['bgpls']['as'],'local' : d1['vm'][i]['bgpls']['local']}
-				if 'pcep' in d1['vm'][i].keys():
-					if d1['vm'][i]['pcep']=='yes' or d1['vm'][i]['pcep']==True:
-						if 'pcep_server' in d1.keys():
-							dummy1['pcep']={'server': d1['pcep_server'],'local': d1['vm'][i]['interfaces']['lo0']['family']['inet'].split('/')[0] }
-				if 'paragon_ingest' in d1.keys():
-					dummy1['ingest']={'ip' : d1['paragon_ingest'],'source': d1['vm'][i]['interfaces']['lo0']['family']['inet'].split('/')[0]}
-				for j in d1['vm'][i]['interfaces'].keys():
-					if j != 'mgmt':
-						#if 'mtu' in  d1['vm'][i]['interfaces'][j].keys():
-						#	add_mtu(dummy1,j,d1['vm'][i]['interfaces'][j]['mtu'])
-						add_into_protocols(dummy1,'lldp',j,"")
-						if 'mtu' in d1['vm'][i]['interfaces'][j].keys():
-							add_mtu(dummy1,j,d1['vm'][i]['interfaces'][j]['mtu'])
-						if 'family' in d1['vm'][i]['interfaces'][j].keys():
-							if 'mpls' in d1['vm'][i]['interfaces'][j]['family'].keys():
-								add_into_protocols(dummy1,'mpls',j,"")
-							for k in d1['vm'][i]['interfaces'][j]['family'].keys():
-								if d1['vm'][i]['interfaces'][j]['family'][k]:
-									add_into_interfaces(dummy1,j,k,d1['vm'][i]['interfaces'][j]['family'][k])
-								else:
-									add_into_interfaces(dummy1,j,k,True)
-						if 'protocol' in d1['vm'][i]['interfaces'][j].keys():
-							#print("protocol found")
-							for k in d1['vm'][i]['interfaces'][j]['protocol'].keys():
-								if k == 'mpls':
-									pass
-								elif k == 'isis':
-									if d1['vm'][i]['interfaces'][j]['protocol'][k] == 'ptp':
-										option = 'point-to-point'
-									elif d1['vm'][i]['interfaces'][j]['protocol'][k] == 'passive':
-										option = 'passive'
-									else:
-										option = ""
-								else:
-									option = ""
-								#print("interface %s protocol %s option %s" %(j,k,option))
-								add_into_protocols(dummy1,k,j,option)
-						if 'rpm' in d1['vm'][i]['interfaces'][j].keys():
-							intf = j + ".0"
-							src = d1['vm'][i]['interfaces'][j]['rpm']['source']
-							dst = d1['vm'][i]['interfaces'][j]['rpm']['destination']
-							dummy1['rpm'].update({intf : { 'src': src, 'dst': dst }})
-						#if 'static' in d1['vm'][i]['interfaces'][j].keys():
-						#	for k in d1['vm'][i]['interfaces'][j]['static']:
-						#		d1['vm'][i]['interfaces'][j]['static'].append(
-						#			{'to': k['to'], 'via':k['via']}
-						#		)
-						#	add_into_route_options_static(dummy1,)
-
-				# pprint.pprint(dummy1)
+				dummy1 = create_junos_config(d1,i)
 				config1=Template(jt).render(dummy1)
 				f1=param1.tmp_dir + i + ".conf"
 				write_to_file_config(f1,config1)
@@ -2179,15 +2020,17 @@ def make_vex_config(d1,i):
 	# config_dir=param1.home_dir + d1['pod']['user'] + '/' + d1['name'] + "/"
 	intf_list=[]
 	# print("make config for srx ",i)
-	retval.append('vm "'+i+'" {')
-	retval.append('   hostname "'+i+'";')
+	retval.append(f"vm \"{i}\" {{")
+	retval.append(f"   hostname \"{i}\";")
 	retval.append('      VEXDISK')
 	retval.append('      memory 16384;')
 	retval.append('      ncpus 4;')
 	retval.append('      setvar "+qemu_args" "-cpu host,+vmx";')
 	# retval.append('      setvar "qemu_args" "-cpu qemu64,+vmx,+ssse3,+sse4_1,+sse4_2,+aes,+avx,+pat,+pclmulqdq,+rdtscp,+syscall,+tsc-deadline,+x2apic,+xsave";')
-	retval.append("         install \"" + config_dir + i + ".conf\" \"/root/junos.base.conf\";")
-	retval.append('      interface "vio0" { bridge "' + mgmt_bridge + '"; };')
+	#retval.append("         install \"" + config_dir + i + ".conf\" \"/root/junos.base.conf\";")
+	retval.append(f"         install \"{config_dir}{i}.conf\" \"/root/junos.base.conf\";")
+	#retval.append('      interface "vio0" { bridge "' + mgmt_bridge + '"; };')
+	retval.append(f"      interface \"vio0\" {{ bridge \"{mgmt_bridge}\"; }};")
 	# print(intf_list)
 	for j in d1['vm'][i]['interfaces'].keys():
 		if 'ge' in j:
@@ -2195,7 +2038,8 @@ def make_vex_config(d1,i):
 	intf_list.sort()
 	for j in intf_list:
 		intf_name = "vio" + str(int(j.split("/")[2]) + 1)
-		retval.append('      interface "' +  intf_name + '" { bridge "' + d1['vm'][i]['interfaces'][j]['bridge'] + '";};')
+		#retval.append('      interface "' +  intf_name + '" { bridge "' + d1['vm'][i]['interfaces'][j]['bridge'] + '";};')
+		retval.append(f"      interface \"{intf_name}\" {{ bridge \"{d1['vm'][i]['interfaces'][j]['bridge']}\";}};")
 	retval.append('};')
 	return retval
 
@@ -2224,29 +2068,68 @@ def init_junos(d1):
 	print("this is for init junos")
 	list_of_jvm=[]
 	for i in d1['vm'].keys():
-		if d1['vm'][i]['os'] == 'vex':
+		if d1['vm'][i]['os'] in ['vex','evo']:
 			list_of_jvm.append(i)
 	if list_of_jvm:
 		print("list of virtual junos ",list_of_jvm)
 		for i in list_of_jvm:
 			send_init(d1,i)
+		config_junos(d1)
+
+
+def connect_to_vm(d1,i):
+	ssh_gw = connect_to_gw(d1)
+	host_ip = get_mgmt_ip(d1,i)
+	user_id, passwd = get_user(d1,i)
+	jumphost_transport=ssh_gw.get_transport()
+	src_addr=(d1['gw_ip'],22)
+	if d1['vm'][i]['type']=='junos':
+		dest_addr=(d1['vm'][i]['interfaces']['mgmt']['ipv4'].split('/')[0],22)
+	else:
+		dest_addr=(d1['vm'][i]['interfaces']['em0']['ipv4'].split('/')[0],22)
+	#print(f"source address {src_addr[0]}, destination address {dest_addr[0]}")
+	jumphost_channel = jumphost_transport.open_channel("direct-tcpip", dest_addr, src_addr)
+	ssh=paramiko.SSHClient()
+	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+	# ssh.connect(hostname=d1['pod']['vmmserver'],username=d1['pod']['user'],password=d1['pod']['unixpassword'],sock=jumphost_channel)
+	ssh.connect(hostname=host_ip,username=user_id,password=passwd,sock=jumphost_channel)
+	return ssh
+
+
+def config_junos(d1):
+	print("this is put configuration into vEX and vEVO")
+	list_of_jvm=[]
+	for i in d1['vm'].keys():
+		if d1['vm'][i]['os'] in ['vex','evo']:
+			list_of_jvm.append(i)
+	if list_of_jvm:
+		print("list of virtual junos ",list_of_jvm)
+		#d1['gw_ip']=get_ip_vm(d1,'gw')
+		for i in list_of_jvm:
+			#print(f"To vm {i}")
+			local1 = f"./tmp/{i}.conf"
+			remote1= f"~/{i}.conf"
+			print(f"uploading file {local1} to {i}")
+			ssh2host=connect_to_vm(d1,i)
+			scp = SCPClient(ssh2host.get_transport())
+			scp.put(local1,remote1)
+			scp.close()
+			ssh2host.close()
 
 def send_init(d1,i):
 	status=0
 	my_hash_root = md5_crypt.hash(d1['junos_login']['password'])
 	my_hash = md5_crypt.hash(d1['junos_login']['password'])
-	cmd1="vmm serial -t " + i
+	#cmd1="vmm serial -t " + i
 	ip_mgmt = d1['vm'][i]['interfaces']['mgmt']['ipv4']
 	br_mgmt = d1['vm'][i]['interfaces']['mgmt']['bridge']
-	for j in d1['vm']['gw']['interfaces'].keys():
-		if br_mgmt in d1['vm']['gw']['interfaces'][j]['bridge']:
-			gateway4=d1['vm']['gw']['interfaces'][j]['ipv4'].split('/')[0]
-			status=1
-	if status:
-		# ssh=sshconnect(d1)
-		c1="ssh vmm 'vmm serial -t {}'" + i
-		print("configuring ",i)
-		# if d1['vm'][i]['os'] == 'vex':
+	gateway4 = get_gateway4(d1,i)
+	junos_status=0
+	print("configuring ",i)
+	if d1['vm'][i]['os'] == 'vex':
+		junos_status=1
+		c1=f"ssh vmm 'vmm serial -t {i}'"
+		print(f"COMMAND {c1}")
 		s_e = [
 				["","login:"],
 				["root","root@"],
@@ -2257,24 +2140,53 @@ def send_init(d1,i):
 				["delete protocols","root#"],
 				["delete system processes dhcp-service","root#"],
 				["set system host-name " + i,"root#"],
-				["set system root-authentication encrypted-password \"" + my_hash_root + "\"","root#"],
+				[f"set system root-authentication encrypted-password \"{my_hash_root}\"","root#"],
 				["set system services ssh","root#"],
 				["set system services netconf ssh","root#"],
-				["set system login user " +  d1['junos_login']['login'] + " class super-user authentication encrypted-password \"" + my_hash + "\"","root#"],
-				["set interfaces fxp0.0 family inet address " + ip_mgmt,"root#"],
+				[f"set system login user {d1['junos_login']['login']} class super-user authentication encrypted-password \"{my_hash}\"","root#"],
+				[f"set interfaces fxp0 unit 0 family inet address {ip_mgmt}","root#"],
 				["set system management-instance","root#"],
-				["set routing-instances mgmt_junos routing-options static route 0.0.0.0/0 next-hop " + gateway4, "root#"],
+				[f"set routing-instances mgmt_junos routing-options static route 0.0.0.0/0 next-hop {gateway4}", "root#"],
 				["set chassis network-services enhanced-ip","root#"],
 				["set snmp community public authorization read-only","root#"],
-				["commit","root@"+i+"#"],
-				["exit","root@"+i+">"],
+				["commit",f"root@{i}#"],
+				["exit",f"root@{i}>"],
 				["exit","root@:~ #"],
 				["exit","login:"]
 			] 
+			## [f"set system login user {d1['junos_login']['login']} authentication ssh-rsa \"{d1['pod']['ssh_key']}\"","root#"],
+	elif d1['vm'][i]['os'] == 'evo':
+		junos_status=1
+		c1=f"ssh vmm 'vmm serial -t {i}_RE0'"
+		print(f"COMMAND {c1}")
+		s_e = [
+				["","login:"],
+				["root","root@re0:~#"],
+				["cli","root@re0>"],
+				["edit","root@re0#"],
+				["delete system commit","root@re0#"],
+				["delete chassis","root@re0#"],
+				["set system host-name " + i,"root@re0#"],
+				[f"set system root-authentication encrypted-password \"{my_hash_root}\"","root@re0#"],
+				["set system services ssh","root@re0#"],
+				["set system services netconf ssh","root@re0#"],
+				[f"set system login user {d1['junos_login']['login']} class super-user authentication encrypted-password \"{my_hash}\"","root@re0#"],
+				[f"set interfaces re0:mgmt-0 unit 0 family inet address {ip_mgmt}","root@re0#"],
+				["set system management-instance","root@re0#"],
+				[f"set routing-instances mgmt_junos routing-options static route 0.0.0.0/0 next-hop {gateway4}", "root@re0#"],
+				["set snmp community public authorization read-only","root@re0#"],
+				[f"commit",f"root@{i}#"],
+				[f"exit",f"root@{i}>"],
+				["exit","root@re0:~#"],
+				["exit","login:"]
+			]
+			## [f"set system login user {d1['junos_login']['login']} authentication ssh-rsa \"{d1['pod']['ssh_key']}\"","root@re0#"],
+	if junos_status:
 		p1=pexpect.spawn(c1)
 		for j in s_e:
-			print("send :",j[0])
+			print(f"send :{j[0]}")
 			p1.sendline(j[0])
-			print("expect : ",j[1])
+			print(f"expect : {j[1]}")
 			p1.expect(j[1], timeout=120)
 		p1.close()
+

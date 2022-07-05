@@ -3,7 +3,7 @@ name: t1
 pod: 
   type: vmm
   vmmserver: q-pod25-vmm.englab.juniper.net
-  jumpserver: ttqc-shell010.juniper.net
+  #jumpserver: ttqc-shell010.juniper.net
   user: irzan
   adpassword: ThisIsMyPassword
   home_dir : /vmm/data/user_disks/irzan
@@ -12,10 +12,11 @@ pod:
   evo: mgmt
 images:
   gw: images/gw.qcow2
-  ubuntu: images/ubuntu1804.qcow2
-  vmx_re: images/vmx/junos-vmx-x86-64-21.3R1.9.vmdk
+  ubuntu: images/ubuntu-20.04.qcow2
+  vmx_re: images/vmx/junos-vmx-x86-64-22.1R1.10.vmdk
   # vmx_mpc: images/vmx/vFPC-20210824.vmdk
-  evo: images/junos-evo-install-ptx-fixed-x86-64-21.3R1.9-EVO.iso
+  evo: images/evo/junos-evo-install-ptx-fixed-x86-64-22.2R1.12-EVO.iso
+  vex: images/vex/vJunos-ex-21.2R3-S1.7.qcow2
 junos_login:
   login: admin
   password: pass01
@@ -36,9 +37,14 @@ fabric:
   # 0xbd means enable family ipv4, iso and mpls, and enable protocol isis and rsvp, and delay measurement using RPM
     - [ 0x1, ce1, ge-0/0/1, pe1, ge-0/0/0 ]
     - [ 0x7d, pe1, ge-0/0/1, p1, et-0/0/1 ]
-    - [ 0x7d, p1, et-0/0/2, p2, et-0/0/1 ]
-    - [ 0x7d, p2, et-0/0/2, pe2, ge-0/0/0 ]
-    - [ 0x1, pe2, ge-0/0/1, ce2, ge-0/0/1 ]
+    - [ 0x7d, pe1, ge-0/0/2, p3, et-0/0/1 ]
+    - [ 0x7d, p1, et-0/0/2, p2, et-0/0/2 ]
+    - [ 0x7d, p1, et-0/0/3, p3, et-0/0/3 ]
+    - [ 0x7d, p2, et-0/0/3, p4, et-0/0/3 ]
+    - [ 0x7d, p3, et-0/0/2, p4, et-0/0/2 ]
+    - [ 0x7d, p2, et-0/0/1, pe2, ge-0/0/1 ]
+    - [ 0x7d, p4, et-0/0/1, pe2, ge-0/0/2 ]
+    - [ 0x1, pe2, ge-0/0/0, ce2, ge-0/0/1 ]
 vm:
   gw:
     type: gw
@@ -52,7 +58,7 @@ vm:
         dhcp_range: 172.16.10.200-172.16.10.220
   ce1:
     type: junos
-    os: mx240
+    os: vex
     interfaces:
       mgmt: 
         bridge: mgmt
@@ -100,9 +106,9 @@ vm:
           iso: 49.0001.0101.0000.1003.00
         protocol:
           isis: passive
-  pe2:
+  p3:
     type: junos
-    os: mx240
+    os: evo
     interfaces:
       mgmt: 
         bridge: mgmt
@@ -113,13 +119,39 @@ vm:
           iso: 49.0001.0101.0000.1004.00
         protocol:
           isis: passive
-  ce2:
+  p4:
+    type: junos
+    os: evo
+    interfaces:
+      mgmt: 
+        bridge: mgmt
+        ipv4: 172.16.10.106/24
+      lo0:
+        family:
+          inet: 10.100.1.5/32
+          iso: 49.0001.0101.0000.1005.00
+        protocol:
+          isis: passive
+  pe2:
     type: junos
     os: mx240
     interfaces:
       mgmt: 
         bridge: mgmt
-        ipv4: 172.16.10.106/24
+        ipv4: 172.16.10.107/24
+      lo0:
+        family:
+          inet: 10.100.1.6/32
+          iso: 49.0001.0101.0000.1006.00
+        protocol:
+          isis: passive
+  ce2:
+    type: junos
+    os: vex
+    interfaces:
+      mgmt: 
+        bridge: mgmt
+        ipv4: 172.16.10.108/24
       ge-0/0/0: 
         bridge: ce2ge0
         family:

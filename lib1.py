@@ -2114,6 +2114,11 @@ def config_junos(d1):
 			scp = SCPClient(ssh2host.get_transport())
 			scp.put(local1,remote1)
 			scp.close()
+			cmd1 = f"edit ; load merge relative {i}.conf ; commit"
+			print(f"executing {cmd1}")
+			s1,s2,s3=ssh2host.exec_command(cmd1)
+			for i in s2.readlines():
+				print(i)
 			ssh2host.close()
 
 def send_init(d1,i):

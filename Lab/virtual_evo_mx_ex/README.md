@@ -66,23 +66,18 @@ network ports start from et-0/0/1
 9. Run script [vmm.py](../../vmm.py) to send and run initial configuration on linux nodes. This script will also reboot the VM. So wait before you test connectivity into the VM
 
         ../../vmm.py set_host
-10. Run script [vmm.py](../../vmm.py) to send and run initial configuration on vEX and vPTX nodes. This will set initial configurationi through serial console, and upload configuration for nodes vEX and vPTX
+10. Run script [vmm.py](../../vmm.py) to send and run initial configuration on vEX and vPTX nodes. This will set initial configurationi through serial console, and upload configuration for nodes vEX and vPTX. vEX and vPTX may not be fully boot/run, so wait until it fully run/booted.
 
         ../../vmm.py init_junos
 
-11. Run script[load_config.sh](load_config.sh) to load configuration on vEX and vPTX nodes
-
-        ./load_config.sh
-
-        
-12. Verify that you can access linux and junos VMs, such  **gw**, **p1**, **pe1**, etc., without entering the password. You may have to wait for few minutes for the nodes to be up and running
+11. Verify that you can access linux and junos VMs, such  **gw**, **p1**, **pe1**, etc., without entering the password. You may have to wait for few minutes for the nodes to be up and running
 
         ssh gw
         ssh desktop
         ssh spine1
         ...
 
-13. Now you can test different scenario on the lab
+12. Now you can test different scenario on the lab
 
 
 ## Lab exercise

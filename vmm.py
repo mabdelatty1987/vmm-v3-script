@@ -6,12 +6,12 @@ import time
 # yaml.warnings({'YAMLLoadWarning': False})
 time_start = time.time()
 config1=lib1.check_argv(sys.argv)
-
 if config1:
 	# print("configuration ",config1)
 	d1=lib1.read_config(config1)
 	#print(d1)
 	#d1={}
+	#print(f"config {config1['cmd']} {config1['vm']}")
 	if d1:
 		if config1['cmd'] == 'upload':
 			lib1.upload(d1)
@@ -24,12 +24,6 @@ if config1:
 			lib1.stop(d1)
 		elif config1['cmd'] == 'list':
 			lib1.list_vm(d1)
-		elif config1['cmd'] == 'get_serial':
-			lib1.get_serial(d1,config1['vm'])
-		elif config1['cmd'] == 'get_vga':
-			lib1.get_vga(d1,config1['vm'])
-		elif config1['cmd'] == 'get_ip':
-			lib1.get_ip(d1,config1['vm'])
 		elif config1['cmd'] == 'set_gw':
 			lib1.set_gw(d1)
 		elif config1['cmd'] == 'set_host':
@@ -39,9 +33,15 @@ if config1:
 		elif config1['cmd'] == 'ssh_config':
 			lib1.write_ssh_config(d1)
 		elif config1['cmd'] == 'init_junos':
-			lib1.init_junos(d1)
+			lib1.init_junos(d1,config1['vm'])
 		elif config1['cmd'] == 'config_junos':
 			lib1.config_junos(d1)
+		#elif config1['cmd'] == 'get_serial':
+		#	lib1.get_serial(d1,config1['vm'])
+		#elif config1['cmd'] == 'get_vga':
+		#	lib1.get_vga(d1,config1['vm'])
+		#elif config1['cmd'] == 'get_ip':
+		#	lib1.get_ip(d1,config1['vm'])
 		else:
 			print("wrong argument")
 	else:

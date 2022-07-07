@@ -70,24 +70,20 @@ You can do the following steps on VMM server or any linux machine (VM) or macosx
         ../../vmm.py upload  <-- to create the topology file and the configuration for the VMs and upload them into vmm server
         ../../vmm.py start   <-- to start the topology in the vmm server
 
-5. Add the content of file [tmp/ssh_config](tmp/ssh_config) into your ssh config file. If file .ssh/config has content from the previous lab (Any entries after "### the following lines are added by vmm-v3-script" must be deleted)
-
-        cat tmp/ssh_config >> ~/.ssh/config
-
-6. Verify that you can access node **gw** using ssh (username: ubuntu,  password: pass01 ). You may have to wait for few minutes for node **gw** to be up and running
-7. Run script [vmm.py](../../vmm.py) to send and run initial configuration on node **gw**. This will configure ip address on other interfaces (such ase eth1, eth2, etc) and enable dhcp server on node gw
+5. Verify that you can access node **gw** using ssh (username: ubuntu,  password: pass01 ). You may have to wait for few minutes for node **gw** to be up and running
+6. Run script [vmm.py](../../vmm.py) to send and run initial configuration on node **gw**. This will configure ip address on other interfaces (such ase eth1, eth2, etc) and enable dhcp server on node gw
 
         ../../vmm.py set_gw
 
-8. Verify that you can access other nodes (linux and junos VM), such **control**, *c1**, **pe1**, etc. Please use the credential to login.
+7. Verify that you can access other nodes (linux and junos VM), such **control**, *c1**, **pe1**, etc. Please use the credential to login.
 
         ssh control
 
-9. Run script [vmm.py](../../vmm.py) to send and run initial configuration on linux nodes. This script will also reboot the VM. So wait before you test connectivity into the VM
+8. Run script [vmm.py](../../vmm.py) to send and run initial configuration on linux nodes. This script will also reboot the VM. So wait before you test connectivity into the VM
 
         ../../vmm.py set_host
 
-10. Verify that you can access linux and junos VMs, such **control**, **node**, **node1**, without entering the password. You may have to wait for few minutes for the nodes to be up and running
+9. Verify that you can access linux and junos VMs, such **control**, **node**, **node1**, without entering the password. You may have to wait for few minutes for the nodes to be up and running
 
         ssh control
         ssh pe1

@@ -40,28 +40,20 @@ Documentation on how to install openstack and contrail networking using contrail
         ../../vmm.py upload  <-- to create the topology file and the configuration for the VMs and upload them into vmm server
         ../../vmm.py start   <-- to start the topology in the vmm server
 
-5. Add the content of file [tmp/ssh_config](tmp/ssh_config) into your ssh config file, ~/.ssh/config. If you have run the previous lab, please remove entries on file ~/.ssh/config from the previous lab (Any entries after "### the following lines are added by vmm-v3-script" must be deleted)
-
-        # do the following two command if you have previous configuration of vmm inside the ssh config file
-        export START_LINE=`grep -n '###' ~/.ssh/config | cut -d : -f 1`
-        sed -i .bak -e "${START_LINE},\$d" ~/.ssh/config
-        # this is to add tmp/ssh_config into ~/.ssh/config
-        cat tmp/ssh_config >> ~/.ssh/config
-
-6. Verify that you can access node **gw** using ssh (username: ubuntu,  password: pass01 ). You may have to wait for few minutes for node **gw** to be up and running
-7. Run script [vmm.py](../../vmm.py) to send and run initial configuration on node **gw**
+5. Verify that you can access node **gw** using ssh (username: ubuntu,  password: pass01 ). You may have to wait for few minutes for node **gw** to be up and running
+6. Run script [vmm.py](../../vmm.py) to send and run initial configuration on node **gw**
 
         ../../vmm.py set_gw
 
-8. Verify that you can access other nodes (linux and junos VM), such **master**, **node1**, **node2**, etc. Please use the credential to login.
+7. Verify that you can access other nodes (linux and junos VM), such **master**, **node1**, **node2**, etc. Please use the credential to login.
 
         ssh master
 
-9. Run script [vmm.py](../../vmm.py) to send and run initial configuration on linux nodes. This script will also reboot the VM. So wait before you test connectivity into the VM
+8. Run script [vmm.py](../../vmm.py) to send and run initial configuration on linux nodes. This script will also reboot the VM. So wait before you test connectivity into the VM
 
         ../../vmm.py set_host
 
-10. Verify that you can access linux and junos VMs, such **master**, **node1**, **sdngw**, without entering the password. You may have to wait for few minutes for the nodes to be up and running
+9. Verify that you can access linux and junos VMs, such **master**, **node1**, **sdngw**, without entering the password. You may have to wait for few minutes for the nodes to be up and running
 
         ssh node0
         ssh node1

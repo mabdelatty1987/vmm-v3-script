@@ -5,13 +5,12 @@
 
 # 24 July 2021, updated for VMM 3.0 (not backward compatible with previous version of VMM)
 
-from re import L
+#from re import L
 import param1
 #import sys
 import os
 import shutil
 import paramiko
-#import pexpect
 import time
 import pathlib
 from jinja2 import Template
@@ -297,13 +296,13 @@ def print_syntax():
 	print("  start  : to start VM in the vmm pod")
 	print("  stop   : to stop in the vmm pod")
 	print("  list   : list of running VM")
-	print("  get_serial : get serial information of the vm")
-	print("  get_vga : get vga information of the vm (for vnc)")
-	print("  get_ip  : get IP information of the vm")
+	#print("  get_serial : get serial information of the vm")
+	#print("  get_vga : get vga information of the vm (for vnc)")
+	#print("  get_ip  : get IP information of the vm")
 	print("  set_gw  : setting gateway configuration")
 	print("  set_host  : setting ubuntu/centos configuration")
 	print("  init_junos  : initial configuration for vEX and vEVO")
-	print("  config_junos  : push configuration for vEX and vEVO")
+	#print("  config_junos  : push configuration for vEX and vEVO")
 	print("if configuration file is not specified, then file lab.yaml must be present")
 
 def check_argv(argv):
@@ -317,6 +316,12 @@ def check_argv(argv):
 		else:
 			retval['config_file']="lab.yaml"
 			retval['cmd']=argv[1]
+			t1 = argv[0].split("/")
+			path=""
+			for i in list(range(2)):
+				path += t1[i] + "/"
+			#print("path ",path)
+			retval['path']=path
 			if retval['cmd'] == 'get_ip':
 				if len(argv)==2:
 					print("get_ip requires VM information")
@@ -333,12 +338,13 @@ def check_argv(argv):
 					retval['vm'] = argv[2]
 				else:
 					retval['vm'] = ""
-			t1 = argv[0].split("/")
-			path=""
-			for i in list(range(2)):
-				path += t1[i] + "/"
-			#print("path ",path)
-			retval['path']=path
+			elif retval['cmd'] == 'init_junos': 
+				#print(f"len {len(argv)}")
+				if len(argv)==3:
+					retval['vm'] = argv[2]
+				else:
+					retval['vm']= False
+
 	return retval
 
 def checking_config_syntax(d1):
@@ -1091,7 +1097,7 @@ def stop(d1):
 		ssh=sshconnect(d1)
 		print('-----')
 		print("stop the existing topology")
-		cmd1="vmm stop"
+		cmd1="vmm stop && vmm unbind"
 		s1,s2,s3=ssh.exec_command(cmd1)
 		for i in s2.readlines():
 			print(i.rstrip())
@@ -1382,7 +1388,8 @@ def write_ssh_config(d1):
 		if d1['vm'][i]['type']=='gw':
 			gw_name = i
 			break
-	file1.append('### the following lines are added by vmm-v3-script')
+	file1.append('### by vmm-v3-script ###')
+	#file1.append('### the following lines are added by vmm-v3-script')
 	file1.append("""Host *
     StrictHostKeyChecking no
 	
@@ -1478,8 +1485,26 @@ def write_ssh_config(d1):
 	print("write ssh_config")
 	f1=param1.tmp_dir + "ssh_config"
 	write_to_file(f1,file1)
+	add_to_ssh_config(file1)
 	# for i in file1:
 	#	print(i)
+
+def add_to_ssh_config(file1):
+	ssh_config = os.path.expanduser('~') + "/.ssh/config"
+	orig1 = []
+	if os.path.exists(ssh_config):
+		with open(ssh_config) as f_config:
+			for line in f_config:
+				if '### by vmm-v3-script ###' in line:
+					print("found entry with ### by vmm-v3-script ###")
+					break
+				else:
+					orig1.append(line.rstrip())
+		new_config = orig1 + file1
+		write_to_file(ssh_config,new_config)
+	else:
+		write_to_file(ssh_config,file1)
+
 				
 def get_ip_mgmt(d1,i):
 	retval=""	
@@ -2064,17 +2089,25 @@ def make_vrr_config(d1,i):
 	retval.append('};')
 	return retval
 
-def init_junos(d1):
+def init_junos(d1,vm=""):
 	print("this is for init junos")
 	list_of_jvm=[]
 	for i in d1['vm'].keys():
 		if d1['vm'][i]['os'] in ['vex','evo']:
 			list_of_jvm.append(i)
 	if list_of_jvm:
-		print("list of virtual junos ",list_of_jvm)
-		for i in list_of_jvm:
-			send_init(d1,i)
-		config_junos(d1)
+		if vm:
+			#print(f"VM is {vm}")
+			if vm not in list_of_jvm:
+				print(f"VM {vm} is not configured in this topology")
+			else:
+				send_init(d1,vm)
+				config_junos(d1,vm)
+		else:
+			print("list of virtual junos ",list_of_jvm)
+			for i in list_of_jvm:
+				send_init(d1,i)
+			config_junos(d1)
 
 
 def connect_to_vm(d1,i):
@@ -2095,31 +2128,36 @@ def connect_to_vm(d1,i):
 	ssh.connect(hostname=host_ip,username=user_id,password=passwd,sock=jumphost_channel)
 	return ssh
 
+def config_junos(d1,vm=""):
+	if not vm:
+		print("this is put configuration into vEX and vEVO")
+		list_of_jvm=[]
+		for i in d1['vm'].keys():
+			if d1['vm'][i]['os'] in ['vex','evo']:
+				list_of_jvm.append(i)
+		if list_of_jvm:
+			print("list of virtual junos ",list_of_jvm)
+			#d1['gw_ip']=get_ip_vm(d1,'gw')
+			for i in list_of_jvm:
+				#print(f"To vm {i}")
+				upload_to_vm(d1,i)
+	else:
+		upload_to_vm(d1,i)
 
-def config_junos(d1):
-	print("this is put configuration into vEX and vEVO")
-	list_of_jvm=[]
-	for i in d1['vm'].keys():
-		if d1['vm'][i]['os'] in ['vex','evo']:
-			list_of_jvm.append(i)
-	if list_of_jvm:
-		print("list of virtual junos ",list_of_jvm)
-		#d1['gw_ip']=get_ip_vm(d1,'gw')
-		for i in list_of_jvm:
-			#print(f"To vm {i}")
-			local1 = f"./tmp/{i}.conf"
-			remote1= f"~/{i}.conf"
-			print(f"uploading file {local1} to {i}")
-			ssh2host=connect_to_vm(d1,i)
-			scp = SCPClient(ssh2host.get_transport())
-			scp.put(local1,remote1)
-			scp.close()
-			cmd1 = f"edit ; load merge relative {i}.conf ; commit"
-			print(f"executing {cmd1}")
-			s1,s2,s3=ssh2host.exec_command(cmd1)
-			for i in s2.readlines():
-				print(i)
-			ssh2host.close()
+def upload_to_vm(d1,i):
+	local1 = f"./tmp/{i}.conf"
+	remote1= f"~/{i}.conf"
+	print(f"uploading file {local1} to {i}")
+	ssh2host=connect_to_vm(d1,i)
+	scp = SCPClient(ssh2host.get_transport())
+	scp.put(local1,remote1)
+	scp.close()
+	cmd1 = f"edit ; load merge relative {i}.conf ; commit"
+	print(f"executing {cmd1}")
+	s1,s2,s3=ssh2host.exec_command(cmd1)
+	for i in s2.readlines():
+		print(i)
+	ssh2host.close()
 
 def send_init(d1,i):
 	status=0

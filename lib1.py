@@ -451,6 +451,9 @@ def get_user(d1,i):
 	elif d1['vm'][i]['os']=='ubuntu':
 		user_id = 'ubuntu'
 		passwd = 'pass01'
+	elif d1['vm'][i]['os']=='desktop':
+		user_id = 'ubuntu'
+		passwd = 'pass01'
 	elif d1['vm'][i]['os']=='centos':
 		user_id = 'centos'
 		passwd = 'pass01'
@@ -2142,7 +2145,7 @@ def config_junos(d1,vm=""):
 				#print(f"To vm {i}")
 				upload_to_vm(d1,i)
 	else:
-		upload_to_vm(d1,i)
+		upload_to_vm(d1,vm)
 
 def upload_to_vm(d1,i):
 	local1 = f"./tmp/{i}.conf"
@@ -2230,6 +2233,6 @@ def send_init(d1,i):
 			print(f"send :{j[0]}")
 			p1.sendline(j[0])
 			print(f"expect : {j[1]}")
-			p1.expect(j[1], timeout=120)
+			p1.expect(j[1], timeout=240)
 		p1.close()
 

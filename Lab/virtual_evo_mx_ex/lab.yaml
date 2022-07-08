@@ -8,12 +8,13 @@ pod:
   adpassword: ThisIsMyPassword
   home_dir : /vmm/data/user_disks/irzan
   ssh_key_name: key1
-  ntp: 172.16.10.1
+  #ntp: 172.16.10.1
   evo: mgmt
 images:
   gw: images/gw.qcow2
   ubuntu: images/ubuntu-20.04.qcow2
-  vmx_re: images/vmx/junos-vmx-x86-64-22.1R1.10.vmdk
+  desktop: images/desktop.qcow2
+  vmx_re: images/vmx/junos-vmx-x86-64-22.2R1.9.vmdk
   # vmx_mpc: images/vmx/vFPC-20210824.vmdk
   evo: images/evo/junos-evo-install-ptx-fixed-x86-64-22.2R1.12-EVO.iso
   vex: images/vex/vJunos-ex-21.2R3-S1.7.qcow2
@@ -44,6 +45,8 @@ fabric:
     - [ 0x7d, p3, et-0/0/2, p4, et-0/0/2 ]
     - [ 0x7d, p2, et-0/0/1, pe2, ge-0/0/1 ]
     - [ 0x7d, p4, et-0/0/1, pe2, ge-0/0/2 ]
+    - [ 0x7d, pe3, ge-0/0/1, p3, et-0/0/4 ]
+    - [ 0x7d, pe3, ge-0/0/2, p4, et-0/0/4 ]
     - [ 0x1, pe2, ge-0/0/0, ce2, ge-0/0/1 ]
 vm:
   gw:
@@ -56,6 +59,9 @@ vm:
         bridge: mgmt
         ipv4: 172.16.10.1/24
         dhcp_range: 172.16.10.200-172.16.10.220
+      em2: 
+        bridge: conn1
+        ipv4: 172.16.3.0/31
   ce1:
     type: junos
     os: vex
@@ -69,7 +75,7 @@ vm:
           inet: 172.16.1.1/24
   pe1:
     type: junos
-    os: mx240
+    os: vmx
     interfaces:
       mgmt: 
         bridge: mgmt
@@ -89,8 +95,8 @@ vm:
         ipv4: 172.16.10.103/24
       lo0:
         family:
-          inet: 10.100.1.2/32
-          iso: 49.0001.0101.0000.1002.00
+          inet: 10.100.1.11/32
+          iso: 49.0001.0101.0000.1011.00
         protocol:
           isis: passive
   p2:
@@ -102,8 +108,8 @@ vm:
         ipv4: 172.16.10.104/24
       lo0:
         family:
-          inet: 10.100.1.3/32
-          iso: 49.0001.0101.0000.1003.00
+          inet: 10.100.1.12/32
+          iso: 49.0001.0101.0000.1012.00
         protocol:
           isis: passive
   p3:
@@ -115,8 +121,8 @@ vm:
         ipv4: 172.16.10.105/24
       lo0:
         family:
-          inet: 10.100.1.4/32
-          iso: 49.0001.0101.0000.1004.00
+          inet: 10.100.1.13/32
+          iso: 49.0001.0101.0000.1013.00
         protocol:
           isis: passive
   p4:
@@ -128,21 +134,21 @@ vm:
         ipv4: 172.16.10.106/24
       lo0:
         family:
-          inet: 10.100.1.5/32
-          iso: 49.0001.0101.0000.1005.00
+          inet: 10.100.1.14/32
+          iso: 49.0001.0101.0000.1014.00
         protocol:
           isis: passive
   pe2:
     type: junos
-    os: mx240
+    os: vmx
     interfaces:
       mgmt: 
         bridge: mgmt
         ipv4: 172.16.10.107/24
       lo0:
         family:
-          inet: 10.100.1.6/32
-          iso: 49.0001.0101.0000.1006.00
+          inet: 10.100.1.2/32
+          iso: 49.0001.0101.0000.1002.00
         protocol:
           isis: passive
   ce2:
@@ -156,32 +162,47 @@ vm:
         bridge: ce2ge0
         family:
           inet: 172.16.2.1/24
+  pe3:
+    type: junos
+    os: vmx
+    interfaces:
+      mgmt: 
+        bridge: mgmt
+        ipv4: 172.16.10.109/24
+      lo0:
+        family:
+          inet: 10.100.1.3/32
+          iso: 49.0001.0101.0000.1003.00
+        protocol:
+          isis: passive
+      ge-0/0/0: 
+        bridge: conn1
+        family:
+          inet: 172.16.3.1/31
   c1:
-    type: pctiny
+    type: pcsmall
     os: ubuntu
-    vnc: no
+    vnc: yes
     interfaces:
       em0: 
         bridge: mgmt
         ipv4: 172.16.10.201/24
       em1:
         bridge: ce1ge0
-        family:
-          inet: 172.16.1.1/24
-          gateway4: 172.16.1.1
+        ipv4: 172.16.1.1/24
+        gateway4: 172.16.1.1
   c2:
-    type: pctiny
-    os: ubuntu
-    vnc: no
+    type: pcsmall
+    os: desktop
+    vnc: yes
     interfaces:
       em0: 
         bridge: mgmt
         ipv4: 172.16.10.202/24
       em1:
         bridge: ce2ge0
-        family:
-          inet: 172.16.2.1/24
-          gateway4: 172.16.2.1
+        ipv4: 172.16.2.1/24
+        gateway4: 172.16.2.1
   
   
   

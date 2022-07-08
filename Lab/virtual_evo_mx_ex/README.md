@@ -18,9 +18,10 @@ network ports start from et-0/0/1
 ## Devices in the lab
 
 - vPTX : P1, P2, P3, P4
-- vMX : PE1, PE2
+- vMX : PE1, PE2, PE3
 - vEX : CE1, CE2
 - ubuntu: C1, C2
+- gw : ubuntu
 
 
 ## Credential to access devices

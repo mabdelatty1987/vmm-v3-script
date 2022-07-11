@@ -4,11 +4,11 @@
 ![topology](images/topology_paragon.png)
 
 ## note
-Tested with paragon automation version 21.3
+Tested with paragon automation version 22.1
 
-for version 21.3, it requires ceph.
+for version 22.1, it requires ceph.
 
-Based on the [documentation](https://www.juniper.net/documentation/us/en/software/paragon-automation21.3/paragon-automation-installation-guide/topics/concept/paragon-install-system-reqs.html#paragon-automation-system-requirements__section_disk-partitions), it requires unformatted partition or disk for ceph storage.
+Based on the [documentation](https://www.juniper.net/documentation/us/en/software/paragon-automation22.1/paragon-automation-installation-guide/topics/concept/paragon-install-system-reqs.html#paragon-automation-system-requirements__section_disk-partitions), it requires unformatted partition or disk for ceph storage.
 
 Therefore for paragon automation installation on Juniper VMM, I have created another image (ubuntu-18.04.img or ubuntu-20.04.img), where it has one harddisk with the size of 300G, 250G has been allocated for base OS, and 50G is free unused disk space.
 
@@ -70,11 +70,11 @@ Therefore for paragon automation installation on Juniper VMM, I have created ano
 10. from your workstation, run script [update1.sh](./install/update1.sh). this script will upload the necessary script into vm control, node0..node4, run it and reboot the VM.
 
 ## Uploading Paragon Automation installation file
-1. if you are going to install Paragon automation version 21.3 or later, then you need create an empy partition on **node0**, **node1**, **node2**, and  **node3**. You can use this [update1.sh](install/update1.sh) to to automatically create empty partition, update file /etc/security/limits.conf, and /etc/sysctl.conf on those node. The script will reboot node0, node1, node2, and node3. 
+1. if you are going to install Paragon automation version 22.1 or later, then you need create an empy partition on **node0**, **node1**, **node2**, and  **node3**. You can use this [update1.sh](install/update1.sh) to to automatically create empty partition, update file /etc/security/limits.conf, and /etc/sysctl.conf on those node. The script will reboot node0, node1, node2, and node3. 
 
-2. If you have paragon automation installation file, upload it into node **control** ( Caution: The size of the installation (as for version 21.3) is around 14G, so it may take time to upload the file into node **control** from your workstation
+2. If you have paragon automation installation file, upload it into node **control** ( Caution: The size of the installation (as for version 22.1) is around 14G, so it may take time to upload the file into node **control** from your workstation
 
-        scp Paragon21.3.tar.gz control:~/
+        scp Paragon22.1.tar.gz control:~/
 3. Alternatively, you can upload the installation file from Juniper internal server. To upload file from internal server, do the following steps
 4. open ssh session into node **vmm**
 
@@ -97,8 +97,44 @@ Therefore for paragon automation installation on Juniper VMM, I have created ano
 8. Upload the file into node **control**
     ![upload_software](images/upload_sw.png)
 
+## install FRR on node GW
+1. open ssh session into node **GW**, update the software and install routing software frr
+
+        ssh control
+        sudo apt -y update && sudo apt -y upgrade
+        sudo apt -y install frr
+
+2. enable BGP for **frr**
+
+        sudo cat /etc/frr/daemons | grep bgp
+        sudo sed -i -e 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
+        sudo systemctl restart frr
+
+3. Configure BGP on **frr**
+
+        cat << EOF | sudo vtysh 
+        enable
+        config t
+        router bgp 65200
+        neighbor 172.16.11.100 remote-as 65201
+        neighbor 172.16.11.101 remote-as 65201
+        neighbor 172.16.11.102 remote-as 65201
+        neighbor 172.16.11.103 remote-as 65201
+        !
+        address-family ipv4 unicast
+        network 0.0.0.0/0
+        exit-address-family
+        !
+        exit
+        exit
+        write mem
+        exit
+
+        EOF
+
+
 ## Installing Paragon Automation software
-Please refer to the [installation guide](https://www.juniper.net/documentation/us/en/software/paragon-automation21.3/paragon-automation-installation-guide/index.html) for Paragon Automation software.
+Please refer to the [installation guide](https://www.juniper.net/documentation/us/en/software/paragon-automation22.1/paragon-automation-installation-guide/index.html) for Paragon Automation software.
 
 
 1. From your workstation, upload script [install_docker.sh](install/install_docker.sh)
@@ -116,25 +152,43 @@ Please refer to the [installation guide](https://www.juniper.net/documentation/u
 3. Once node **control** is back online, open ssh session into it.
 4. Extract Paragon installation file 
 
-         tar xpvfz Paragon21.3.tar.gz
+         tar xpvfz Paragon22.1.tar.gz
 
 
 5. Run file **run** from paragon installation file  to initialize configuration directory **configdir**
 
-        chmod +x Paragon21.3/run 
-        ./Paragon21.3/run -c configdir init
+        chmod +x Paragon22.1/run 
+        ./Paragon22.1/run -c configdir init
 
     ![extract.png](images/extract.png)
 
+6. edit file configdir/config.yaml, and edit section **metallb_config** and **chrony_config_server**
+        metallb_config:
+          peers:
+           - peer-address: 172.16.11.1
+             peer-asn: 65200
+             my-asn: 65201
+          address-pools:
+           - name: default
+             protocol: bgp
+             addresses:
+                - 172.16.1.0/28
+        chrony_config_server: [ntp.juniper.net]
+
+7. copy file ~/.ssh/id_rsa to ~/id_rsa
+
+        cp ~/.ssh/id_rsa ~/id_rsa
+
+
 6. Run file **run** from paragon installation to fill initial configuration (ip addresses of kubernetes nodes, and password)
         
-        ./Paragon21.3/run -c configdir inv
+        ./Paragon22.1/run -c configdir inv
 
 ![run_inv.png](images/paragon_run_inv.png)
 
 7. Run file **run** from paragon installation to configure paragon parameter
         
-        ./Paragon21.3/run -c configdir conf
+        ./Paragon22.1/run -c configdir conf
 
 ![run_conf.png](images/paragon_run_conf0.png)
 ![run_conf.png](images/paragon_run_conf1.png)
@@ -143,13 +197,13 @@ Please refer to the [installation guide](https://www.juniper.net/documentation/u
 8. Start Paragon automation installation process. The installation proccess may take up to 60 minutes to finish.
 
         tmux
-        ./Paragon21.3/run -c configdir deploy
+        ./Paragon22.1/run -c configdir deploy
     
     ![deploy.png](images/deploy.png)
 
     ![finish.png](images/finish.png)
 
-9. If installation fail, it just needed to be repeated, just rerun ./Paragon21.3/run -c configdir deploy
+9. If installation fail, it just needed to be repeated, just rerun ./Paragon22.1/run -c configdir deploy
 
 ## Copying kubernetes config file
 1. open ssh session into node0
@@ -166,7 +220,7 @@ Please refer to the [installation guide](https://www.juniper.net/documentation/u
         sudo chown ubuntu:ubuntu .kube/config
 
 ## updating npatpw license
-there is bug on Paragon 21.3 related to npatpw license on paragon automation. Do the following steps to fix it
+there is bug on Paragon 22.1 related to npatpw license on paragon automation. Do the following steps to fix it
 1. open ssh session into **node0**
 
         ssh node0

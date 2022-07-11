@@ -51,6 +51,7 @@ This tool consist of the following script
 - [lib1.py](../lib1.py)
 - [param1.py](../param1.py)
 - lab configuration (lab.yaml)
+- [requirements.txt](../requirements.txt)
 
 ## lib1.py
 This script is the library with functions declaration used by the main scripts (`vmm.py`)
@@ -69,19 +70,26 @@ please edit this file for the following :
 
 Please refer to the sample configuration under directory [Lab](Lab/)
 
+## requirements.txt
+
+This file contains list of python3 libraries required by the script
+
+on your workstation, install it using the following command
+
+        pip3 install -r requirements.txt
+
+
 ## vmm.py
 This script is the user interface, which will read the configuration `lab.yaml` and call the library from `lib1.py1
 
 There are different arguments required by this script
 - argument `upload` : to create VMM configuration files and upload them into VMM pod
 - argument `start` : to start the topology inside the VMM
-- argument `stop` : to stop the topology inside the VMM
-- argument `get_serial` :  to get serial console information of the active VMs in the VMM
-- argument `get_vga` :  to get the VNC port to access into Video console of the VM (if vnc is enabled)
-- argument `get_ip` :  to get external IP address assigned to the VM (if VM is connected to bridge external)    
+- argument `stop` : to stop the topology inside the VMM 
 - argument `list` :  to get the list of running VMs
 - argument `set_gw`: to send configuration of gateway (ip address on other interface (em1,em2, etc) and DHCP server configuration)
-- argument `set_host`: to send configuration to PC VMs
+- argument `set_host`: to send configuration to Linux VMs
+- argument `init_junos`: to send configuration to vEX and/or vPTX
 
 ## Caution
 
@@ -113,22 +121,23 @@ You can also use ssh key to have passwordless access into the jump host and vmm 
 
         ../../vmm.py start
 
-4. Add the content of `./tmp/ssh_config` into your ssh config file `~/.ssh/config`, to allow easy access into the VM that you have created in the VMM. Any previous configuration for `/.ssh/config` from previouss lab must be removed before you add the new ssh config.
 
-        cat ./tmp/ssh_config >> ~/.ssh/config
-
-5. Verify that node GW is up and running, by initiating ssh session into it. The username to access node GW is **pass01**
+4. Verify that node GW is up and running, by initiating ssh session into it. The username to access node GW is **pass01**
 
         ssh gw
 
-6. Run the script with argument `set_gw`, to configure other interfaces of node gw (interface em1, em2, etc), upload ssh key and dhcp server configuration. Node **GW** will be acting as DHCP server for on ubuntu/centos VM in the topology
+5. Run the script with argument `set_gw`, to configure other interfaces of node gw (interface em1, em2, etc), upload ssh key and dhcp server configuration. Node **GW** will be acting as DHCP server for on ubuntu/centos VM in the topology
 
         ../../vmm.py set_gw
 
 
-7. Run the script with argument `set_host`, to configure ubuntu/centos VM, such has hostname, change interface configuration from dhcp to static, and upload ssh key.
+6. Run the script with argument `set_host`, to configure Linux VM, such has hostname, change interface configuration from dhcp to static, and upload ssh key.
 
         ../../vmm.py set_host
+
+6. If there are vEX (vJunos) and/or vPTX in the topology, then run the script with argument `init_junos`,  vEX and vPTX.
+
+        ../../vmm.py init_junos
 
 9. Now the lab is ready and can be used
 

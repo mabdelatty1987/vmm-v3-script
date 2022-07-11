@@ -460,6 +460,9 @@ def get_user(d1,i):
 	elif d1['vm'][i]['os']=='alpine':
 		user_id = 'alpine'
 		passwd = 'pass01'
+	elif d1['vm'][i]['os']=='bridge':
+		user_id = 'alpine'
+		passwd = 'pass01'
 	else:
 		user_id = 'admin'
 		passwd = 'pass01'
@@ -904,6 +907,7 @@ def set_host(d1):
 						line_to_file += ['      nameservers:']
 						line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
 						if 'static' in intf[j].keys():
+							line_to_file += ['      routes:']
 							for k in intf[j]['static']:
 								line_to_file += ['        - to: {}'.format(k['to'])]
 								line_to_file += ['          via: {}'.format(k['via'])]
@@ -2180,7 +2184,7 @@ def send_init(d1,i):
 				["","login:"],
 				["root","root@"],
 				["cli","root>"],
-				["edit","root#"],
+				["configure","root#"],
 				["delete interfaces fxp0","root#"],
 				["delete chassis","root#"],
 				["delete protocols","root#"],
@@ -2209,7 +2213,7 @@ def send_init(d1,i):
 				["","login:"],
 				["root","root@re0:~#"],
 				["cli","root@re0>"],
-				["edit","root@re0#"],
+				["configure","root@re0#"],
 				["delete system commit","root@re0#"],
 				["delete chassis","root@re0#"],
 				["set system host-name " + i,"root@re0#"],

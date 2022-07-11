@@ -17,7 +17,7 @@ images:
   gw: images/gw.qcow2
   ubuntu: images/ubuntu-20.04.qcow2
   desktop: images/desktop.qcow2
-  vmx_re: images/vmx/junos-vmx-x86-64-22.1R1.10.vmdk
+  vmx_re: images/vmx/junos-vmx-x86-64-22.2R1.9.vmdk
 junos_login:
   login: admin
   password: pass01

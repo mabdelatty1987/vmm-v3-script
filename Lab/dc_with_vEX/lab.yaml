@@ -11,16 +11,16 @@ pod:
   adpassword: AnaMabokCoys
   home_dir : /vmm/data/user_disks/irzan
   ssh_key_name: key1
-  ntp: 172.16.10.1
+  #ntp: 172.16.10.1
 images:
   gw: images/gw.qcow2
   ubuntu: images/ubuntu-20.04.qcow2
   alpine: images/alpine.qcow2
-  vmx_re: images/vmx/junos-vmx-x86-64-22.1R1.10.vmdk
+  vmx_re: images/vmx/junos-vmx-x86-64-22.2R1.9.vmdk
   #vqfx_re: images/vqfx/jinstall-vqfx-10-f-20.2R1.10.vmdk
-  vqfx_re: images/vqfx/jinstall-vqfx-10-f-21.3I.vmdk
+  #vqfx_re: images/vqfx/jinstall-vqfx-10-f-21.3I.vmdk
   # vqfx_re: images/vqfx/jinstall-vqfx-10-f-18.4R2-S2.3.vmdk
-  vqfx_cosim: images/vqfx/vqfx-20.2R1-2019010209-pfe-qemu.vmdk
+  #vqfx_cosim: images/vqfx/vqfx-20.2R1-2019010209-pfe-qemu.vmdk
   vsrx: images/vsrx/junos-vsrx3-x86-64-22.1R1.10.vmdk
   aos: images/aos_server_4.1.1-217.qcow2
   vex: images/vex/vJunos-ex-21.2R3-S1.7.qcow2
@@ -83,6 +83,7 @@ vm:
       em3:
         bridge: ext
         ipv4: 172.16.12.1/24
+        dhcp_range: 172.16.12.5-172.16.12.20
       em4:
         bridge: gwpe1
       em5:
@@ -312,7 +313,7 @@ vm:
         dns: 172.16.10.1
   svr1:
     type: pctiny
-    os: alpine
+    os: ubuntu
     vnc: yes
     interfaces:
       em0: 
@@ -325,7 +326,7 @@ vm:
         bridge: l1p5
   svr2:
     type: pctiny
-    os: alpine
+    os: ubuntu
     vnc: yes
     interfaces:
       em0: 
@@ -414,8 +415,8 @@ vm:
       em2: 
         bridge: l5p7
   svr10:
-    type: pctiny
-    os: alpine
+    type: pcsmall
+    os: ubuntu
     vnc: yes
     interfaces:
       em0: 
@@ -443,8 +444,8 @@ vm:
       em2: 
         bridge: l4p6
   svr11:
-    type: pctiny
-    os: alpine
+    type: pcsmall
+    os: ubuntu
     vnc: yes
     interfaces:
       em0:

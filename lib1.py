@@ -430,7 +430,7 @@ def connect_to_gw(d1):
 		ssh=paramiko.SSHClient()
 		ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 		# ssh.connect(hostname=d1['pod']['vmmserver'],username=d1['pod']['user'],password=d1['pod']['unixpassword'],sock=jumphost_channel)
-		ssh.connect(hostname=host_ip,username=user_id,password=passwd,sock=jumphost_channel)
+		ssh.connect(hostname=d1['gw_ip'],username=user_id,password=passwd,sock=jumphost_channel)
 	else:
 		ssh=paramiko.SSHClient()
 		ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())

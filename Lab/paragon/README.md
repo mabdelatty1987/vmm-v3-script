@@ -106,31 +106,31 @@ Therefore for paragon automation installation on Juniper VMM, I have created ano
 
 2. enable BGP for **frr**
 
-        sudo cat /etc/frr/daemons | grep bgp
-        sudo sed -i -e 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
-        sudo systemctl restart frr
+sudo cat /etc/frr/daemons | grep bgp
+sudo sed -i -e 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
+sudo systemctl restart frr
 
 3. Configure BGP on **frr**
 
-        cat << EOF | sudo vtysh 
-        enable
-        config t
-        router bgp 65200
-        neighbor 172.16.11.100 remote-as 65201
-        neighbor 172.16.11.101 remote-as 65201
-        neighbor 172.16.11.102 remote-as 65201
-        neighbor 172.16.11.103 remote-as 65201
-        !
-        address-family ipv4 unicast
-        network 0.0.0.0/0
-        exit-address-family
-        !
-        exit
-        exit
-        write mem
-        exit
+cat << EOF | sudo vtysh 
+enable
+config t
+router bgp 65200
+neighbor 172.16.11.100 remote-as 65201
+neighbor 172.16.11.101 remote-as 65201
+neighbor 172.16.11.102 remote-as 65201
+neighbor 172.16.11.103 remote-as 65201
+!
+address-family ipv4 unicast
+network 0.0.0.0/0
+exit-address-family
+!
+exit
+exit
+write mem
+exit
 
-        EOF
+EOF
 
 
 ## Installing Paragon Automation software
@@ -192,7 +192,23 @@ Please refer to the [installation guide](https://www.juniper.net/documentation/u
 
 ![run_conf.png](images/paragon_run_conf0.png)
 ![run_conf.png](images/paragon_run_conf1.png)
+
+ip address for ingress controller: 172.16.1.1
+
+ip address for insight services : 172.16.1.2
+
+ip address for Pathfinder PCE : 172.16.1.3
+
+ip address for NGIX ingress controller: 172.16.1.4
+
+ip address for SNMP Trap receiver: 172.16.1.5
+
+ip address for netflowd service: 172.16.1.6 
+
+
 ![run_conf.png](images/paragon_run_conf2.png)
+
+
 
 8. Start Paragon automation installation process. The installation proccess may take up to 60 minutes to finish.
 
@@ -219,38 +235,6 @@ Please refer to the [installation guide](https://www.juniper.net/documentation/u
         sudo cp /etc/kubernetes/admin.conf ./.kube/config
         sudo chown ubuntu:ubuntu .kube/config
 
-## updating npatpw license
-there is bug on Paragon 22.1 related to npatpw license on paragon automation. Do the following steps to fix it
-1. open ssh session into **node0**
-
-        ssh node0
-
-2. Create file /var/tmp/npatpw. you can use this script [create_npatpw.sh](./install/create_npatpw.sh)
-
-        cat > /var/tmp/npatpw <<EOF
-        expire_date=6/7/2024
-        usercount=5
-        node_limit=250
-        card=micro_service
-        MAC=FF:EE:DD:CC:BB:AA
-        customer=MICRO_SERVICE
-        S-NS-PLNR-BSC=gWTqDmZKRnaQRVjARguWYW
-        S-NS-PLNR-PRM=TWRhUihDeZLWDYFXDbiaTj
-        S-NS-SDN-BSC=ZIVamtZDhiHQRVjARguWYW
-        S-NS-SDN-STD=LDYYjugBUpZLSBGTOimXQn
-        S-NS-SDN-PRM=gdPdcxcSjjXRYWYPDauiBD
-        EOF
-
-3. Copy file /var/tmp/npatpw to 
-
-        sudo mv /etc/kubernetes/po/ns-common/npatpw ~/npatpw.backup
-        sudo cp /var/tmp/npatpw  /etc/kubernetes/po/ns-common/npatpw
-
-4. Run the following to update npatpw license on the kubernetes cluster
-
-        kubectl -n northstar delete secret northstar-license
-        kubectl -n northstar create secret generic northstar-license --from-file /etc/kubernetes/po/ns-common/npatpw
-        kubectl -n northstar get secret northstar-license
 
 ## Accessing Web Interface of Paragon automation
 1. From your workstation, open ssh session to node **proxy** and keep this session open if you need to access the web dashboard of Paragon Automation platform

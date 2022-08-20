@@ -22,8 +22,11 @@ images:
   # vqfx_re: images/vqfx/jinstall-vqfx-10-f-18.4R2-S2.3.vmdk
   #vqfx_cosim: images/vqfx/vqfx-20.2R1-2019010209-pfe-qemu.vmdk
   vsrx: images/vsrx/junos-vsrx3-x86-64-22.1R1.10.vmdk
-  aos: images/aos_server_4.1.1-217.qcow2
+  aos: images/aos_server_4.1.1-287.qcow2
+  aos_ztp: images/apstra-ztp-4.1.1-7.qcow2
   vex: images/vex/vJunos-ex-21.2R3-S1.7.qcow2
+  veos: images/veos/vEOS64-lab-4.28.1F.qcow2
+  veos_cdrom: images/veos/Aboot-veos-8.0.1.iso
 junos_login:
   login: admin
   password: admin
@@ -32,7 +35,7 @@ fabric:
   topology:
   # there are five field: status, VM node A, interface of node A, VM node Z, interface of node Z
   # value for the field status:
-  # bit 0 : ipv4
+  # bit 0 : inet
   # bit 1 : ipv6
   # bit 2 : iso
   # bit 3 : mpls
@@ -40,8 +43,8 @@ fabric:
   # bit 5 : rsvp
   # bit 6 : ldp
   # bit 7 : delay_measurement_rpm
-  # 0x3d means enable family ipv4, iso and mpls, and enable protocol isis and rsvp
-  # 0xbd means enable family ipv4, iso and mpls, and enable protocol isis and rsvp, and delay measurement using RPM
+  # 0x3d means enable family inet, iso and mpls, and enable protocol isis and rsvp
+  # 0xbd means enable family inet, iso and mpls, and enable protocol isis and rsvp, and delay measurement using RPM
     - [ 0, spine1, ge-0/0/0, leaf1, ge-0/0/0 ]
     - [ 0, spine1, ge-0/0/1, leaf2, ge-0/0/0 ]
     - [ 0, spine1, ge-0/0/2, leaf3, ge-0/0/0 ]
@@ -75,44 +78,52 @@ vm:
         bridge: external
       em1: 
         bridge: lan1
-        ipv4: 172.16.10.1/24
-        dhcp_range: 172.16.10.200-172.16.10.250
+        family:
+          inet: 172.16.10.1/24
+        #dhcp_range: 172.16.10.200-172.16.10.250
       em2: 
         bridge: gwext1
-        ipv4: 172.16.11.0/31
+        family:
+          inet: 172.16.11.0/31
       em3:
         bridge: ext
-        ipv4: 172.16.12.1/24
+        family:
+          inet: 172.16.12.1/24
         dhcp_range: 172.16.12.5-172.16.12.20
       em4:
         bridge: gwpe1
       em5:
         bridge: gwvx
-        ipv4: 172.16.11.2/31
+        family:
+          inet: 172.16.11.2/31
       em6: 
         bridge: lan6
-        ipv4: 172.16.16.1/24
+        family:
+          inet: 172.16.16.1/24
   spine1:
     type: junos
     os: vex
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.101/24 
+        bridge: lan1
+        family:
+          inet: 172.16.10.101/24 
   spine2:
     type: junos
     os: vex
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.102/24 
+        bridge: lan1
+        family:
+          inet: 172.16.10.102/24 
   leaf1:
     type: junos
     os: vex
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.103/24 
+        bridge: lan1
+        family:
+          inet: 172.16.10.103/24 
       ge-0/0/2: 
         bridge: l1p2
       ge-0/0/3: 
@@ -130,8 +141,9 @@ vm:
     os: vex
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.104/24 
+        bridge: lan1
+        family:
+          inet: 172.16.10.104/24 
       ge-0/0/2: 
         bridge: l2p2
       ge-0/0/3: 
@@ -149,8 +161,9 @@ vm:
     os: vex
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.105/24 
+        bridge: lan1
+        family:
+          inet: 172.16.10.105/24 
       ge-0/0/2: 
         bridge: l3p2
       ge-0/0/3: 
@@ -168,8 +181,9 @@ vm:
     os: vex
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.106/24 
+        bridge: lan1
+        family:
+          inet: 172.16.10.106/24 
       ge-0/0/2: 
         bridge: l4p2
       ge-0/0/3: 
@@ -187,8 +201,9 @@ vm:
     os: vex
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.107/24 
+        bridge: lan1
+        family:
+          inet: 172.16.10.107/24 
       ge-0/0/5: 
         bridge: l5p5
       ge-0/0/6: 
@@ -200,8 +215,9 @@ vm:
     os: vex
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.108/24 
+        bridge: lan1
+        family:
+          inet: 172.16.10.108/24 
       ge-0/0/3: 
         bridge: sw1p3
       ge-0/0/4: 
@@ -217,8 +233,9 @@ vm:
     os: vex
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.109/24 
+        bridge: lan1
+        family:
+          inet: 172.16.10.109/24 
       ge-0/0/3: 
         bridge: sw2p3
       ge-0/0/4: 
@@ -234,8 +251,9 @@ vm:
     os: vmx
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.110/24
+        bridge: lan1
+        family:
+          inet: 172.16.10.110/24
       lo0:
         family:
           inet: 10.100.1.1/32
@@ -247,8 +265,9 @@ vm:
     os: vmx
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.111/24
+        bridge: lan1
+        family:
+          inet: 172.16.10.111/24
       lo0:
         family:
           inet: 10.100.1.2/32
@@ -260,12 +279,14 @@ vm:
     os: vmx
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.112/24
+        bridge: lan1
+        family:
+          inet: 172.16.10.112/24
       lo0:
         family:
           inet: 10.100.1.3/32
-          iso: 49.0001.0101.0000.1003.00
+          family:
+            iso: 49.0001.0101.0000.1003.00
         protocol:
           isis: passive
   ext1:
@@ -273,8 +294,9 @@ vm:
     os: vmx
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.113/24
+        bridge: lan1
+        family:
+          inet: 172.16.10.113/24
       ge-0/0/0: 
         bridge: gwext1
         description: Connection to gw
@@ -285,8 +307,9 @@ vm:
     os: vmx
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.114/24
+        bridge: lan1
+        family:
+          inet: 172.16.10.114/24
       ge-0/0/0: 
         bridge: gwvx
         description: Connection to gw
@@ -299,8 +322,9 @@ vm:
     os: vsrx
     interfaces:
       mgmt: 
-        bridge: lan6
-        ipv4: 172.16.16.115/24 
+        bridge: lan1
+        family:
+          inet: 172.16.10.115/24 
   apstra:
     type: vapp
     os: aos
@@ -308,11 +332,23 @@ vm:
     interfaces: 
       em0: 
         bridge: lan1
-        ipv4: 172.16.10.150/24 
-        gateway4: 172.16.10.1
-        dns: 172.16.10.1
+        family:
+          inet: 172.16.10.2/24 
+          gateway4: 172.16.10.1
+          dns: 172.16.10
+  ztp:
+    type: vapp_s
+    os: aos_ztp
+    vnc: yes
+    interfaces: 
+      em0: 
+        bridge: lan1
+        family:
+          inet: 172.16.10.3/24 
+          gateway4: 172.16.10.1
+          dns: 172.16.10.1
   svr1:
-    type: pctiny
+    type: pchpv2
     os: ubuntu
     vnc: yes
     interfaces:
@@ -325,7 +361,7 @@ vm:
       em3:
         bridge: l1p5
   svr2:
-    type: pctiny
+    type: pchpv2
     os: ubuntu
     vnc: yes
     interfaces:
@@ -450,7 +486,8 @@ vm:
     interfaces:
       em0:
         bridge: ext
-        ipv4: 172.16.12.10/24
-        gateway4: 172.16.12.1
+        family:
+          inet: 172.16.12.10/24
+          gateway4: 172.16.12.1
   
   

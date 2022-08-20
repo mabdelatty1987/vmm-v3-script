@@ -36,6 +36,10 @@ if config1:
 			lib1.init_junos(d1,config1['vm'])
 		elif config1['cmd'] == 'config_junos':
 			lib1.config_junos(d1)
+		elif config1['cmd'] == 'get_mac':
+			lib1.get_mac(d1)
+		elif config1['cmd'] == 'print_data':
+			lib1.print_data(d1)
 		#elif config1['cmd'] == 'get_serial':
 		#	lib1.get_serial(d1,config1['vm'])
 		#elif config1['cmd'] == 'get_vga':

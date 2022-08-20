@@ -16,15 +16,19 @@ vm_type={
    'esxi': {'ncpus' : 8,'memory':32768},
    'vcsa': {'ncpus' : 4,'memory':16384},
    'vapp': {'ncpus' : 4,'memory':32768},
+   'vapp_s': {'ncpus' : 1,'memory':4096},
    'ssrc': {'ncpus' : 4,'memory':8192},
    'ssrr': {'ncpus' : 4,'memory':4096},
    'junos': '',
    'vspirent': {'ncpus' : 2,'memory':1024},
    'bridge': {'ncpus' : 2,'memory':2048},
-   'cpe': {'ncpus' : 1,'memory':256}
+   'cpe': {'ncpus' : 1,'memory':256},
+   'veos': {'ncpus' : 2, 'memory':4096}
 }
 # vm_os=['centos','ubuntu','vmx','vqfx','vsrx','evo','mx960','mx480','mx240','wrt']
-vm_os=['gw','alpine','centos','ubuntu','debian','desktop','vmx','vqfx','vsrx','vex','evo','mx960','mx480','mx240','vrr','jspace','sdi','vspirent','vcsa','esxi','aos','bridge','wrt','paagent','ssr']
+vm_os=['gw','alpine','centos','ubuntu','ubuntu2','debian','desktop','vmx',
+   'vqfx','vsrx','vex','evo','mx960','mx480','mx240','vrr','jspace',
+   'sdi','vspirent','vcsa','esxi','aos','aos_ztp','bridge','wrt','paagent','ssr','veos']
 tmp_dir="./tmp/"
 vmm_group="-g vmm-default"
 esxi_ds_size=100

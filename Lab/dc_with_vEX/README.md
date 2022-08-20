@@ -1,4 +1,4 @@
-# Running Apstra Fabric conductor 4.1.1 and vEX
+# Running Juniper Apstra 4.1.1 and vEX
 this script is to run Juniper Apstra 4.1.1 (Beta Release ) and vEX (21.2R3-S1.7) on juniper's VMM
 
 ## Topology

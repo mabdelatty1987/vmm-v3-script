@@ -27,6 +27,11 @@ from scp import SCPClient
 
 from passlib.hash import md5_crypt
 
+def print_data(d1):
+	print("printing data")
+	print("-------------")
+	print(yaml.dump(d1))
+
 def read_config(config):
 	d1={}
 	config_file = config['config_file']
@@ -46,8 +51,8 @@ def read_config(config):
 			elif check_ip(d1):
 				print("wrong subnet allocation")
 				print("subnet %s can't be used with prefix %s" %(d1['fabric']['subnet'].split('/')[0],d1['fabric']['subnet'].split('/')[1]))
-			elif not check_vm(d1):
-				print("number of VM on topology doesn't match with on configuration")
+			#elif not check_vm(d1):
+			#	print("number of VM on topology doesn't match with on configuration")
 			else:
 				create_config_interfaces(d1)
 		change_gateway4(d1)
@@ -68,15 +73,22 @@ def read_config(config):
 
 def change_gateway4(d1):
 	for i in d1['vm'].keys():
-		if d1['vm'][i]['os'] in ['ubuntu','desktop']:
+		if d1['vm'][i]['os'] in ['ubuntu','ubuntu2','desktop']:
 			for j in d1['vm'][i]['interfaces'].keys():
-				if 'gateway4' in d1['vm'][i]['interfaces'][j].keys():
-					if 'static' in d1['vm'][i]['interfaces'][j].keys():
-						#d1['vm'][i]['interfaces'][j]['static'].append({'to':'default','via':j['gateway4']})
-						d1['vm'][i]['interfaces'][j]['static'].append({'to':'0.0.0.0/0','via':j['gateway4']})
-					else:
-						#d1['vm'][i]['interfaces'][j]['static']=[{'to':'default','via': d1['vm'][i]['interfaces'][j]['gateway4']}]
-						d1['vm'][i]['interfaces'][j]['static']=[{'to':'0.0.0.0/0','via': d1['vm'][i]['interfaces'][j]['gateway4']}]
+				if 'family' in d1['vm'][i]['interfaces'][j].keys():
+					if 'inet' in d1['vm'][i]['interfaces'][j]['family'].keys():
+						#print(f"host {i} {d1['vm'][i]['interfaces'][j]['family'].keys()}")
+
+						#if 'gateway4' in d1['vm'][i]['interfaces'][j]['family']['inet'].keys():
+						if 'gateway4' in d1['vm'][i]['interfaces'][j].keys():
+							if 'static' in d1['vm'][i]['interfaces'][j].keys():
+								#d1['vm'][i]['interfaces'][j]['static'].append({'to':'default','via':j['gateway4']})
+								d1['vm'][i]['interfaces'][j]['static'].append({'to':'0.0.0.0/0','via':d1['vm'][i]['interfaces'][j]['gateway4']})
+							else:
+								#d1['vm'][i]['interfaces'][j]['static']=[{'to':'default','via': d1['vm'][i]['interfaces'][j]['gateway4']}]
+								d1['vm'][i]['interfaces'][j]['static']=[{'to':'0.0.0.0/0','via': d1['vm'][i]['interfaces'][j]['gateway4']}]
+							d1['vm'][i]['interfaces'][j].pop('gateway4')
+							
 
 def create_config_interfaces(d1):
 	num_link = len(d1['fabric']['topology'])
@@ -256,7 +268,7 @@ def check_ip(d1):
 def check_vm(d1):
 	junos_vm_d1 = []
 	for i in d1['vm'].keys():
-		if d1['vm'][i]['type']=='junos':
+		if d1['vm'][i]['type'] in ['junos','veos']:
 			if i not in junos_vm_d1:
 				junos_vm_d1.append(i)
 	junos_vm_f1= list_vm_from_fabric(d1)
@@ -286,7 +298,7 @@ def get_private_ip_gw(d1):
 		if d1['vm'][i]['type']=="gw":
 			for j in d1['vm'][i]['interfaces'].keys():
 				if d1['vm'][i]['interfaces'][j]['bridge']=="mgmt":
-					retval= d1['vm'][i]['interfaces'][j]['ipv4'].split("/")[0]
+					retval= d1['vm'][i]['interfaces'][j]['family']['inet'].split("/")[0]
 	return retval
 
 def print_syntax():
@@ -362,7 +374,7 @@ def checking_config_syntax(d1):
 			return 0
 	# checking interface
 	for i in d1['vm'].keys():
-		if (d1['vm'][i]['type'] in param1.vm_type.keys()) and (d1['vm'][i]['type']!='junos'):
+		if (d1['vm'][i]['type'] in param1.vm_type.keys()) and (d1['vm'][i]['type'] not in ['junos','veos']):
 			for j in d1['vm'][i]['interfaces'].keys():
 				if 'em' not in j:
 					print("ERROR for VM ",i)
@@ -439,16 +451,16 @@ def connect_to_gw(d1):
 
 def get_mgmt_ip(d1,i):
 	if d1['vm'][i]['type']=='junos':
-		ip_vm = d1['vm'][i]['interfaces']['mgmt']['ipv4'].split('/')[0]
+		ip_vm = d1['vm'][i]['interfaces']['mgmt']['family']['inet'].split('/')[0]
 	else:
-		ip_vm = d1['vm'][i]['interfaces']['em0']['ipv4'].split('/')[0]
+		ip_vm = d1['vm'][i]['interfaces']['em0']['family']['inet'].split('/')[0]
 	return ip_vm
 
 def get_user(d1,i):
 	if d1['vm'][i]['type']=='junos':
 		user_id = d1['junos_login']['login']
 		passwd = d1['junos_login']['password']
-	elif d1['vm'][i]['os']=='ubuntu':
+	elif d1['vm'][i]['os'] in ['ubuntu','ubuntu2']:
 		user_id = 'ubuntu'
 		passwd = 'pass01'
 	elif d1['vm'][i]['os']=='desktop':
@@ -456,6 +468,9 @@ def get_user(d1,i):
 		passwd = 'pass01'
 	elif d1['vm'][i]['os']=='centos':
 		user_id = 'centos'
+		passwd = 'pass01'
+	elif d1['vm'][i]['os']=='debian':
+		user_id = 'debian'
 		passwd = 'pass01'
 	elif d1['vm'][i]['os']=='alpine':
 		user_id = 'alpine'
@@ -497,10 +512,10 @@ def get_vncinfo(d1,vm):
 	cmd1="vmm args " + vm + " | grep \" vnc \""
 	s1,s2,s3=ssh.exec_command(cmd1)
 	#print("host ",vm)
+	vnc_server = "VGA port is disabled "
 	for j in s2.readlines():
 		if j.strip().split()[1] == 'none':
 			vnc_server = "VGA port is disabled "
-			# vnc_port = ""
 		else:
 			vnc_server =  j.strip().split()[1]
 			# vnc_port = int(j.rstrip().split()[1].split(':')[1]) + 5900 
@@ -528,91 +543,20 @@ def get_ip_vm(d1,i):
 		return ""
 
 def get_hosts_config(d1):
-	host_yes=['centos','ubuntu','debian','esxi','aos','bridge','desktop']
+	host_yes=['centos','ubuntu','ubuntu2','debian','esxi','aos','aos_ztp','bridge','desktop']
 	host_config=['127.0.0.1 localhost','::1 ip6-localhost ip6-loopback']
 	for i in d1['vm'].keys():
 		if d1['vm'][i]['os'] in host_yes:
 			for j in d1['vm'][i]['interfaces'].keys():
-				if 'ipv4' in d1['vm'][i]['interfaces'][j].keys():
-					ipaddr=d1['vm'][i]['interfaces'][j]['ipv4'].split('/')[0]
-					host_config.append("{} {}".format(ipaddr,i))
+				#print(f"HOST {i}, Interfaces {j}")
+				if 'family' in d1['vm'][i]['interfaces'][j].keys():
+					if 'inet' in d1['vm'][i]['interfaces'][j]['family'].keys():
+						ipaddr=d1['vm'][i]['interfaces'][j]['family']['inet'].split('/')[0]
+						host_config.append("{} {}".format(ipaddr,i))
 	return host_config
 
-
-def get_dhcp_config_orig(d1):
-	dhcp_yes=['centos','ubuntu','debian','esxi','aos','bridge','desktop','ssr']
-	ssh=sshconnect(d1)
-	cmd1="vmm args "
-	stdin,stdout,sstderr=ssh.exec_command(cmd1)
-	j = stdout.readlines()
-	ssh.close()
-	k=[]
-	k_item=[]
-	c1=0
-	for i in j:
-		if i.strip() !="":
-			k.append(i.strip())
-	for i in k:
-		if '==' in i:
-			k_item.append(c1)
-		c1+=1
-	#print("daftar ",k_item)
-	vm_mac={}
-	for i in k_item:
-		_,h1,_=k[i].split()
-		j=i
-		while True:
-			j+=1
-			if 'mac' in k[j]:
-				break
-
-		# print("host ",h1,k[j].split()[1])
-		vm_mac[h1]={'mac': k[j].split()[1]}
-	#print(vm_mac)
-	vm_mac2={}
-	for i in vm_mac.keys():
-		if i in d1['vm'].keys():
-			if d1['vm'][i]['os'] in dhcp_yes:
-				if 'ipv4' in d1['vm'][i]['interfaces']['em0'].keys():
-					vm_mac2[i]={'mac' : vm_mac[i]['mac'],'ip':d1['vm'][i]['interfaces']['em0']['ipv4'].split('/')[0]}
-	#print(vm_mac2)
-	dhcp_config=[]
-	# host_config=['127.0.0.1 localhost','::1 ip6-localhost ip6-loopback']
-	gw_net_config={}
-	static_config={}
-	mtu_config={}
-	for i in d1['vm']['gw']['interfaces'].keys():
-		if 'dhcp_range' in d1['vm']['gw']['interfaces'][i].keys():
-			dhcp_range=d1['vm']['gw']['interfaces'][i]['dhcp_range']
-			dhcp_config.append("dhcp-range=%s,%s,12h" %(dhcp_range.split("-")[0],dhcp_range.split("-")[1]))
-		if 'ipv4' in d1['vm']['gw']['interfaces'][i].keys():
-			gw_net_config[i.replace('em','eth')]=d1['vm']['gw']['interfaces'][i]['ipv4']
-		if 'static' in d1['vm']['gw']['interfaces'][i].keys():
-			static_config[i.replace('em','eth')]=d1['vm']['gw']['interfaces'][i]['static']
-		if 'mtu' in d1['vm']['gw']['interfaces'][i].keys():
-			mtu_config[i.replace('em','eth')]=d1['vm']['gw']['interfaces'][i]['mtu']
-
-	for i in vm_mac2.keys():
-		mac=vm_mac2[i]['mac']
-		ipaddr = vm_mac2[i]['ip']
-		dhcp_config.append("dhcp-host={},{}".format(mac,ipaddr))
-		# host_config.append("{} {}".format(ipaddr,i))
-	net_config =['network:','  ethernets:']
-	for i in gw_net_config.keys():
-		net_config.append('    {}:'.format(i))
-		net_config.append('       addresses: [ {} ]'.format((gw_net_config[i])))
-		if i in mtu_config.keys():
-			net_config.append('       mtu: {}'.format(mtu_config[i]))
-		if i in static_config.keys():
-			net_config.append('       routes:')
-			for j in static_config[i]:
-				net_config.append('         - to: {}'.format(j['to']))
-				net_config.append('           via: {}'.format(j['via']))
-				net_config.append('           metric: 1')
-	return dhcp_config, net_config
-
 def get_dhcp_config(d1):
-	dhcp_yes=['centos','ubuntu','debian','esxi','aos','bridge','desktop','paagent']
+	dhcp_yes=['centos','ubuntu','ubuntu2','debian','esxi','aos','aos_ztp','bridge','desktop','paagent']
 	ssh=sshconnect(d1)
 	cmd1="vmm args "
 	stdin,stdout,sstderr=ssh.exec_command(cmd1)
@@ -645,8 +589,9 @@ def get_dhcp_config(d1):
 	for i in vm_mac.keys():
 		if i in d1['vm'].keys():
 			if d1['vm'][i]['os'] in dhcp_yes:
-				if 'ipv4' in d1['vm'][i]['interfaces']['em0'].keys():
-					vm_mac2[i]={'mac' : vm_mac[i]['mac'],'ip':d1['vm'][i]['interfaces']['em0']['ipv4'].split('/')[0]}
+				if 'family' in d1['vm'][i]['interfaces']['em0'].keys():
+					if 'inet' in d1['vm'][i]['interfaces']['em0']['family'].keys():
+						vm_mac2[i]={'mac' : vm_mac[i]['mac'],'ip':d1['vm'][i]['interfaces']['em0']['family']['inet'].split('/')[0]}
 	#print(vm_mac2)
 	dhcp_config=[]
 	# host_config=['127.0.0.1 localhost','::1 ip6-localhost ip6-loopback']
@@ -658,17 +603,18 @@ def get_dhcp_config(d1):
 	'option ZTP-encapsulation code 43 = encapsulate ZTP;']
 	for i in d1['vm']['gw']['interfaces'].keys():
 		if 'dhcp_range' in d1['vm']['gw']['interfaces'][i].keys():
-			ip_subnet, subnet_mask = get_subnet(d1['vm']['gw']['interfaces'][i]['ipv4'])
+			ip_subnet, subnet_mask = get_subnet(d1['vm']['gw']['interfaces'][i]['family']['inet'])
 			dhcp_config.append("subnet {} netmask {} {}".format(ip_subnet, subnet_mask,"{"))
 			dhcp_range=d1['vm']['gw']['interfaces'][i]['dhcp_range']
 			dhcp_config.append("   range {} {};".format(dhcp_range.split("-")[0],dhcp_range.split("-")[1]))
-			dhcp_config.append("   option routers {};".format(d1['vm']['gw']['interfaces'][i]['ipv4'].split('/')[0]))
+			dhcp_config.append("   option routers {};".format(d1['vm']['gw']['interfaces'][i]['family']['inet'].split('/')[0]))
 			dhcp_config.append("   option domain-name-servers {};".format(param1.jnpr_dns1))
 			dhcp_config.append("}")
-		if 'ipv4' in d1['vm']['gw']['interfaces'][i].keys():
-			gw_net_config[i.replace('em','eth')]=d1['vm']['gw']['interfaces'][i]['ipv4']
-		if 'static' in d1['vm']['gw']['interfaces'][i].keys():
-			static_config[i.replace('em','eth')]=d1['vm']['gw']['interfaces'][i]['static']
+		if 'family' in d1['vm']['gw']['interfaces'][i].keys():
+			if 'inet' in d1['vm']['gw']['interfaces'][i]['family'].keys():
+				gw_net_config[i.replace('em','eth')]=d1['vm']['gw']['interfaces'][i]['family']['inet']
+				if 'static' in d1['vm']['gw']['interfaces'][i].keys():
+					static_config[i.replace('em','eth')]=d1['vm']['gw']['interfaces'][i]['static']
 		if 'mtu' in d1['vm']['gw']['interfaces'][i].keys():
 			mtu_config[i.replace('em','eth')]=d1['vm']['gw']['interfaces'][i]['mtu']
 
@@ -784,7 +730,7 @@ def create_novnc(d1):
 	websock=[]
 	retval=[]
 	novnc_url=[]
-	ip_gw = d1['vm']['gw']['interfaces']['em1']['ipv4'].split('/')[0]
+	ip_gw = d1['vm']['gw']['interfaces']['em1']['family']['inet'].split('/')[0]
 	for i in d1['vm'].keys():
 		if 'vnc' in d1['vm'][i].keys():
 			if d1['vm'][i]['vnc'] != "no":
@@ -812,12 +758,14 @@ def create_novnc(d1):
 	return retval,websock
 
 def set_host(d1):
-	host_yes=['centos','ubuntu','debian','bridge','desktop']
+	host_yes=['centos','ubuntu','ubuntu2','debian','bridge','desktop']
 	list_hosts=[]
 	f1=param1.tmp_dir + 'set_host.sh'
 	for i in d1['vm'].keys():
-		if d1['vm'][i]['os'] in host_yes and 'ipv4' in d1['vm'][i]['interfaces']['em0'].keys():
-			list_hosts.append(i)
+		if d1['vm'][i]['os'] in host_yes:
+			if  'family' in d1['vm'][i]['interfaces']['em0'].keys():
+				if  'inet' in d1['vm'][i]['interfaces']['em0']['family'].keys():
+					list_hosts.append(i)
 	# open connection to gw
 	host='gw'
 	host_ip = get_ip_vm(d1,host)
@@ -842,56 +790,75 @@ def set_host(d1):
 		line_to_file +=	['echo "' + d1['pod']['ssh_key'] + '" | tee .ssh/authorized_keys']
 		line_to_file +=	['echo "' + d1['pod']['ssh_key_priv'] + '" | tee .ssh/id_rsa']
 		line_to_file +=	['chmod og-rwx .ssh/id_rsa']
-		if d1['vm'][i]['os'] == 'ubuntu':
+		if d1['vm'][i]['os'] in  ['ubuntu','ubuntu2']:
 			line_to_file +=	['sudo rm /etc/netplan/*']
 			line_to_file +=	['echo "']
 			line_to_file +=	['network:']
 			line_to_file +=	['  ethernets:']
-			br_intf=[]
+			br_intf={}
 			for j in intf.keys():
 				line_to_file +=	['    {}:'.format(j.replace("em","eth"))]
 				line_to_file +=	['      dhcp4: false']
 				if 'mtu' in intf[j].keys():
 					line_to_file +=	['      mtu: {}'.format(intf[j]['mtu'])]
 				if 'as_bridge' in intf[j].keys():
-					tmp_br = intf[j]
-					tmp_br['intf']=j.replace("em","eth")
-					br_intf.append(tmp_br)
+					bridge_name = intf[j]['as_bridge']
+					br_intf[bridge_name] = intf[j]
+					br_intf[bridge_name]['intf'] = format(j.replace("em","eth"))
 				else:
-					if 'ipv4' in intf[j].keys():
-						line_to_file +=	['      addresses: [ {} ]'.format(intf[j]['ipv4'])]
-						line_to_file += ['      nameservers:']
-						line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
-						if 'static' in intf[j].keys():
+				#if 'as_bridge' in intf[j].keys():
+				#	tmp_br = intf[j]
+				#	#print(f"tmp_br {tmp_br}")
+				#	tmp_br['intf']=j.replace("em","eth")
+				#	#print(f"tmp_br {tmp_br}")
+				#	br_intf.append(tmp_br)
+				#	#print(f"tmp_br {tmp_br}")
+				#else:
+					if 'family' in intf[j].keys():
+						if 'inet' in intf[j]['family'].keys():
+							line_to_file +=	['      addresses: [ {} ]'.format(intf[j]['family']['inet'])]
+							if 'static' in intf[j].keys():
+								for k in intf[j]['static']:
+									if k['to'] == '0.0.0.0/0':
+										line_to_file += ['      nameservers:']
+										line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
+										break
+								line_to_file += ['      routes:']
+								for k in intf[j]['static']:
+									line_to_file += ['        - to: {}'.format(k['to'])]
+									line_to_file += ['          via: {}'.format(k['via'])]
+									line_to_file += ['          metric: 1']
+			if br_intf:
+				#print(f"br_intf{br_intf}")
+				line_to_file +=	['  bridges:']
+				for j in br_intf.keys():
+					line_to_file +=	[f"    {j}:"]
+					line_to_file +=	['      dhcp4: false']
+					line_to_file +=	['      interfaces: [{}]'.format(br_intf[j]['intf'])]
+					if 'family' in br_intf[j].keys():
+						if 'inet' in br_intf[j]['family'].keys():
+							line_to_file +=	['      addresses: [ {} ]'.format(br_intf[j]['family']['inet'])]
+						#print(f"j  {j}")
+						if 'static' in br_intf[j].keys():
+							for k in br_intf[j]['static']:
+								if k['to'] == '0.0.0.0/0':
+									line_to_file += ['      nameservers:']
+									line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
+									break
 							line_to_file += ['      routes:']
-							for k in intf[j]['static']:
+							for k in br_intf[j]['static']:
 								line_to_file += ['        - to: {}'.format(k['to'])]
 								line_to_file += ['          via: {}'.format(k['via'])]
 								line_to_file += ['          metric: 1']
-			if br_intf:
-				line_to_file +=	['  bridges:']
-				for j in br_intf:
-					line_to_file +=	['    {}:'.format(j['as_bridge'])]
-					line_to_file +=	['      dhcp4: false']
-					line_to_file +=	['      interfaces: [{}]'.format(j['intf'])]
-					if 'ipv4' in j.keys():
-						line_to_file +=	['      addresses: [ {} ]'.format(j['ipv4'])]
-						line_to_file += ['      nameservers:']
-						line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
-					if 'static' in j.keys():
-						line_to_file += ['      routes:']
-						for k in j['static']:
-							line_to_file += ['        - to: {}'.format(k['to'])]
-							line_to_file += ['          via: {}'.format(k['via'])]
-							line_to_file += ['          metric: 1']
 			line_to_file += ['" | sudo tee /etc/netplan/01_net.yaml']
 			line_to_file += ['uuidgen  | sed -e \'s/-//g\' | sudo tee /etc/machine-id']
 		elif d1['vm'][i]['os'] == 'desktop':
 			status=False
 			for j in intf.keys():
-				if 'ipv4' in intf[j].keys():
-					status=True
-					break
+				if 'family' in intf[j].keys():
+					if 'inet' in intf[j]['family'].keys():
+						status=True
+						break
 			if status:
 				line_to_file +=	['sudo rm /etc/netplan/*']
 				line_to_file +=	['echo "']
@@ -902,39 +869,41 @@ def set_host(d1):
 					line_to_file +=	['      dhcp4: false']
 					if 'mtu' in intf[j].keys():
 							line_to_file +=	['      mtu: {}'.format(intf[j]['mtu'])]
-					if 'ipv4' in intf[j].keys():
-						line_to_file +=	['      addresses: [ {} ]'.format(intf[j]['ipv4'])]
-						line_to_file += ['      nameservers:']
-						line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
-						if 'static' in intf[j].keys():
-							line_to_file += ['      routes:']
-							for k in intf[j]['static']:
-								line_to_file += ['        - to: {}'.format(k['to'])]
-								line_to_file += ['          via: {}'.format(k['via'])]
-								line_to_file += ['          metric: 1']
+					if 'family' in intf[j].keys():
+						if 'inet' in intf[j]['family'].keys():
+							line_to_file +=	['      addresses: [ {} ]'.format(intf[j]['family']['inet'])]
+							line_to_file += ['      nameservers:']
+							line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
+							if 'static' in intf[j].keys():
+								line_to_file += ['      routes:']
+								for k in intf[j]['static']:
+									line_to_file += ['        - to: {}'.format(k['to'])]
+									line_to_file += ['          via: {}'.format(k['via'])]
+									line_to_file += ['          metric: 1']
 				line_to_file += ['" | sudo tee /etc/netplan/01_net.yaml']
 				line_to_file += ['uuidgen  | sed -e \'s/-//g\' | sudo tee /etc/machine-id']
 		elif d1['vm'][i]['os'] == 'centos':
 			for j in intf.keys():
 				line_to_file +=	['echo "DEVICE={}'.format(j.replace("em","eth"))]
 				line_to_file +=	['TYPE=ETHERNET']
-				if 'ipv4' in intf[j].keys():
-					line_to_file +=	['BOOTPROTO=static']
-					line_to_file +=	['IPADDR={}'.format(intf[j]['ipv4'].split('/')[0]) ]
-					line_to_file +=	['PREFIX={}'.format(intf[j]['ipv4'].split('/')[1]) ]
-					if 'mtu' in intf[j].keys():
-						line_to_file +=	['MTU={}'.format(intf[j]['mtu'])]
-					if 'gateway4' in intf[j].keys():
-						line_to_file +=	['GATEWAY={}'.format(intf[j]['gateway4'])]
-					if 'dns' in intf[j].keys():
-						line_to_file +=	['DNS1={}'.format(param1.jnpr_dns1)]
-					line_to_file += ['" | sudo tee /etc/sysconfig/network-scripts/ifcfg-{}'.format(j.replace("em","eth"))]
-					if 'static' in intf[j].keys():
-						list_of_static = intf[j]['static']
-						line_to_file +=	['echo "']
-						for k in list_of_static:
-							line_to_file +=	['{} via {} dev {}'.format(k['to'],k['via'],j.replace("em","eth"))]
-						line_to_file += ['" | sudo tee /etc/sysconfig/network-scripts/route-{}'.format(j.replace("em","eth"))]
+				if 'family' in intf[j].keys():
+					if 'inet' in intf[j]['family'].keys():
+						line_to_file +=	['BOOTPROTO=static']
+						line_to_file +=	['IPADDR={}'.format(intf[j]['family']['inet'].split('/')[0]) ]
+						line_to_file +=	['PREFIX={}'.format(intf[j]['family']['inet'].split('/')[1]) ]
+						if 'mtu' in intf[j].keys():
+							line_to_file +=	['MTU={}'.format(intf[j]['mtu'])]
+						if 'gateway4' in intf[j].keys():
+							line_to_file +=	['GATEWAY={}'.format(intf[j]['gateway4'])]
+						if 'dns' in intf[j].keys():
+							line_to_file +=	['DNS1={}'.format(param1.jnpr_dns1)]
+						line_to_file += ['" | sudo tee /etc/sysconfig/network-scripts/ifcfg-{}'.format(j.replace("em","eth"))]
+						if 'static' in intf[j].keys():
+							list_of_static = intf[j]['static']
+							line_to_file +=	['echo "']
+							for k in list_of_static:
+								line_to_file +=	['{} via {} dev {}'.format(k['to'],k['via'],j.replace("em","eth"))]
+							line_to_file += ['" | sudo tee /etc/sysconfig/network-scripts/route-{}'.format(j.replace("em","eth"))]
 		elif d1['vm'][i]['os'] == 'debian':
 			line_to_file +=	['sudo rm /etc/network/interfaces.d/*']
 			line_to_file +=	['sudo rm /run/network/interfaces.d/*']
@@ -943,19 +912,20 @@ def set_host(d1):
 			line_to_file +=	['iface lo inet loopback']
 			for j in intf.keys():
 				line_to_file +=	['auto {}'.format(j.replace("em","eth"))]
-				if 'ipv4' in intf[j].keys():
-					line_to_file +=	['iface {} inet static'.format(j.replace("em","eth"))]
-					line_to_file +=	['  address {}'.format(intf[j]['ipv4'])]
-					if 'mtu' in intf[j].keys():
-						line_to_file +=	['  mtu {}'.format(intf[j]['mtu'])]	
-					if 'gateway4' in intf[j].keys():
-						line_to_file +=	['  gateway {}'.format(intf[j]['gateway4'])]
-					if 'dns' in intf[j].keys():
-						line_to_file +=	['  dns-nameservers {}'.format(param1.jnpr_dns1)]
-					if 'static' in intf[j].keys():
-						list_of_static = intf[j]['static']
-						for k in list_of_static:
-							line_to_file +=	['  up ip route add {} via {} dev {}'.format(k['to'],k['via'],j.replace("em","eth"))]
+				if 'family' in intf[j].keys():
+					if 'inet' in intf[j]['family'].keys():
+						line_to_file +=	['iface {} inet static'.format(j.replace("em","eth"))]
+						# line_to_file +=	['iface {} inet static'.format(j.replace("em","eth"))]
+						line_to_file +=	['  address {}'.format(intf[j]['family']['inet'])]
+						if 'mtu' in intf[j].keys():
+							line_to_file +=	['  mtu {}'.format(intf[j]['mtu'])]	
+						if 'gateway4' in intf[j].keys():
+							line_to_file +=	['  gateway {}'.format(intf[j]['gateway4'])]
+							line_to_file +=	['  dns-nameservers {}'.format(param1.jnpr_dns1)]
+						if 'static' in intf[j].keys():
+							list_of_static = intf[j]['static']
+							for k in list_of_static:
+								line_to_file +=	['  up ip route add {} via {} dev {}'.format(k['to'],k['via'],j.replace("em","eth"))]
 					
 				else:
 					line_to_file +=	['iface {} inet manual'.format(j.replace("em","eth"))]
@@ -967,7 +937,7 @@ def set_host(d1):
 			line_to_file +=	['interface lo inet loopback']
 			line_to_file +=	['auto eth0']
 			line_to_file +=	['interface eth0 inet static']
-			line_to_file +=	['  address {}'.format(intf['em0']['ipv4'])]
+			line_to_file +=	['  address {}'.format(intf['em0']['family']['inet'])]
 			if 'gateway4' in intf['em0'].keys():
 				line_to_file +=	['  gateway {}'.format(intf['em0']['gateway4'])]
 			if 'dns' in intf['em0'].keys():
@@ -980,7 +950,7 @@ def set_host(d1):
 			line_to_file +=	['interface lo inet loopback']
 			line_to_file +=	['auto eth0']
 			line_to_file +=	['interface eth0 inet static']
-			line_to_file +=	['  address {}'.format(intf['em0']['ipv4'])]
+			line_to_file +=	['  address {}'.format(intf['em0']['family']['inet'])]
 			if 'gateway4' in intf['em0'].keys():
 				line_to_file +=	['  gateway {}'.format(intf['em0']['gateway4'])]
 			if 'dns' in intf['em0'].keys():
@@ -1038,9 +1008,13 @@ def get_gateway(d1,i):
 	bridge1 = d1['vm'][i]['interfaces']['em0']['bridge']
 	for j in d1['vm']['gw']['interfaces'].keys():
 		if bridge1 == d1['vm']['gw']['interfaces'][j]['bridge']:
-			retval=d1['vm']['gw']['interfaces'][j]['ipv4'].split('/')[0]
+			retval=d1['vm']['gw']['interfaces'][j]['family']['inet'].split('/')[0]
 	return retval
 	
+def get_mac(d1):
+	for i in d1['vm'].keys():
+		if d1['vm'][i]['os'] == 'vex':
+			print(f"mac of {i} is {get_mac_vm(d1,i)}")
 
 def get_mac_vm(d1,i):
 	if d1['pod']['type'] == 'vmm':
@@ -1142,7 +1116,7 @@ def create_esxi_disk(d1,ssh):
 					print(i.rstrip())
 
 def create_hd2(d1):
-	os_type=['ubuntu','centos','debian']
+	os_type=['ubuntu','ubuntu2','centos','debian']
 	dest_dir=d1['pod']['home_dir'] +'/vm/' + d1['name'] + "/"
 	vm_with_hd2 = {}
 	retval=""
@@ -1302,6 +1276,15 @@ def upload(d1,upload_status=1):
 				lab_conf.append(str1)
 				str1='#define ' + temp_s1 + ' basedisk "' + d1['pod']['home_dir'] + "/" + d1['images'][i] + '";'
 				lab_conf.append(str1)
+			elif 'veos' in i:
+				str1="#undef VEOSDISK "
+				lab_conf.append(str1)
+				str1='#define VEOSDISK basedisk "' + d1['pod']['home_dir'] + "/" + d1['images'][i] + '";'
+				lab_conf.append(str1)
+				str1="#undef VEOS_CDROM"
+				lab_conf.append(str1)
+				str1='#define VEOS_CDROM cdrom_boot "' + d1['pod']['home_dir'] + "/" + d1['images']['veos_cdrom'] + '";'
+				lab_conf.append(str1)
 			else:
 				temp_s1=i.upper() + "_DISK"
 				str1="#undef " + temp_s1
@@ -1318,7 +1301,7 @@ def upload(d1,upload_status=1):
 				lab_conf.extend(make_gw_config(d1,i))
 			elif d1['vm'][i]['type'] in param1.pc_type:
 				lab_conf.extend(make_pc_config(d1,i))
-			elif d1['vm'][i]['type'] == 'vapp':
+			elif d1['vm'][i]['type'] in [ 'vapp','vapp_s']:
 				lab_conf.extend(make_pc_config(d1,i))
 			elif d1['vm'][i]['type'] == 'junos':
 				lab_conf.extend(make_junos_config(d1,i))
@@ -1326,6 +1309,8 @@ def upload(d1,upload_status=1):
 				lab_conf.extend(make_pc_config(d1,i))
 			elif d1['vm'][i]['type'] in  ['vcsa','esxi']:
 				lab_conf.extend(make_vmware_config(d1,i))
+			elif d1['vm'][i]['type'] == 'veos':
+				lab_conf.extend(make_veos_config(d1,i))
 		lab_conf.append('};')
 
 		if os.path.exists(param1.tmp_dir):
@@ -1445,11 +1430,26 @@ def write_ssh_config(d1):
 				else:
 					file1.append("   DynamicForward 1080")
 			else:
-				if get_ip_mgmt(d1,i):
-					file1.append("host %s" %(i))
+				#if get_ip_mgmt(d1,i):
+				#	file1.append("host %s" %(i))
+				#	file1.append(get_ssh_user(d1,i))
+				#	file1.append(identity_file)
+				#	file1.append("   ProxyCommand ssh -W %s:22 %s " %(get_ip_mgmt(d1,i),gw_name))
+				if 'app' in d1['vm'][i].keys():
+					if d1['vm'][i]['app'] == 'crpd':
+						file1.append(f"host {i}")
+						file1.append("user admin")
+						file1.append(identity_file)
+						file1.append(f"   ProxyCommand ssh -W {get_ip_mgmt(d1,i)}:22 {gw_name} ")
+						file1.append(f"host {i}os")
+						file1.append(get_ssh_user(d1,i))
+						file1.append(identity_file)
+						file1.append(f"   ProxyCommand ssh -W {get_ip_mgmt(d1,i)}:8022 {gw_name} ")
+				else:
+					file1.append(f"host {i}")
 					file1.append(get_ssh_user(d1,i))
 					file1.append(identity_file)
-					file1.append("   ProxyCommand ssh -W %s:22 %s " %(get_ip_mgmt(d1,i),gw_name))
+					file1.append(f"   ProxyCommand ssh -W {get_ip_mgmt(d1,i)}:22 {gw_name} ")
 	else:
 		# creating entry for VMM server
 		file1.append("host %s" %('vmm'))
@@ -1485,10 +1485,21 @@ def write_ssh_config(d1):
 					file1.append("   DynamicForward 1080")
 			else:
 				if get_ip_mgmt(d1,i):
-					file1.append("host %s" %(i))
-					file1.append(get_ssh_user(d1,i))
-					file1.append(identity_file)
-					file1.append("   ProxyCommand ssh -W %s:22 %s " %(get_ip_mgmt(d1,i),gw_name))
+					if 'app' in d1['vm'][i].keys():
+						if d1['vm'][i]['app'] == 'crpd':
+							file1.append(f"host {i}")
+							file1.append("user admin")
+							file1.append(identity_file)
+							file1.append(f"   ProxyCommand ssh -W {get_ip_mgmt(d1,i)}:22 {gw_name} ")
+							file1.append(f"host {i}os")
+							file1.append(get_ssh_user(d1,i))
+							file1.append(identity_file)
+							file1.append(f"   ProxyCommand ssh -W {get_ip_mgmt(d1,i)}:8022 {gw_name} ")
+					else:
+						file1.append(f"host {i}")
+						file1.append(get_ssh_user(d1,i))
+						file1.append(identity_file)
+						file1.append(f"   ProxyCommand ssh -W {get_ip_mgmt(d1,i)}:22 {gw_name} ")
 	print("write ssh_config")
 	f1=param1.tmp_dir + "ssh_config"
 	write_to_file(f1,file1)
@@ -1519,8 +1530,9 @@ def get_ip_mgmt(d1,i):
 		for j in d1['vm'][i]['interfaces'].keys():
 			if j == 'em0' or j=='fxp0' or j=='mgmt':
 			# if d1['vm'][i]['interfaces'][j]['bridge']=='mgmt':
-				if 'ipv4' in d1['vm'][i]['interfaces'][j].keys():
-					retval = d1['vm'][i]['interfaces'][j]['ipv4'].split("/")[0]
+				if 'family' in d1['vm'][i]['interfaces'][j].keys():
+					if 'inet' in d1['vm'][i]['interfaces'][j]['family'].keys():
+						retval = d1['vm'][i]['interfaces'][j]['family']['inet'].split("/")[0]
 	return retval
 
 def get_ssh_user(d1,i):
@@ -1532,7 +1544,7 @@ def get_ssh_user(d1,i):
 		if 'centos' in d1['vm'][i]['os']:
 			retval="   user centos"
 		# elif d1['vm'][i]['os'] == 'ubuntu' or d1['vm'][i]['os'] == 'ubuntu1804':
-		elif 'ubuntu' in d1['vm'][i]['os']:
+		elif d1['vm'][i]['os'] in ['ubuntu','ubuntu2']:
 			retval="   user ubuntu"
 		elif 'desktop' in d1['vm'][i]['os']:
 			retval="   user ubuntu"
@@ -1542,7 +1554,7 @@ def get_ssh_user(d1,i):
 			retval="   user ubuntu"
 		elif 'jspace' in d1['vm'][i]['os']:
 			retval="   user admin"
-		elif 'aos' in d1['vm'][i]['os']:
+		elif d1['vm'][i]['os'] in ['aos','aos_ztp']:
 			retval="   user admin"
 		elif 'esxi' in d1['vm'][i]['os']:
 			retval="   user root"
@@ -1552,6 +1564,8 @@ def get_ssh_user(d1,i):
 			retval="   user alpine"
 		elif 'alpine' in d1['vm'][i]['os']:
 			retval="   user alpine"
+		elif 'veos' in d1['vm'][i]['os']:
+			retval="   user admin"
 	return retval
 
 
@@ -1587,7 +1601,7 @@ def get_gateway4(d1,i):
 	gateway4 = '0.0.0.0'
 	for i in d1['vm']['gw']['interfaces'].keys():
 		if d1['vm']['gw']['interfaces'][i]['bridge'] == vm_bridge:
-			gateway4 = d1['vm']['gw']['interfaces'][i]['ipv4'].split('/')[0]
+			gateway4 = d1['vm']['gw']['interfaces'][i]['family']['inet'].split('/')[0]
 	return gateway4
 
 def create_junos_config(d1,i):
@@ -1609,9 +1623,9 @@ def create_junos_config(d1,i):
 		dummy1['type']='vex'
 	elif d1['vm'][i]['os'] == 'evo':
 		dummy1['type']='evo'
-	# dummy1['gateway4']=d1['vm']['gw']['interfaces']['em1']['ipv4'].split('/')[0]
+	# dummy1['gateway4']=d1['vm']['gw']['interfaces']['em1']['family']['inet'].split('/')[0]
 	dummy1['gateway4'] = get_gateway4(d1,i)
-	dummy1['mgmt_ip']=d1['vm'][i]['interfaces']['mgmt']['ipv4']
+	dummy1['mgmt_ip']=d1['vm'][i]['interfaces']['mgmt']['family']['inet']
 	dummy1['interfaces']=None
 	dummy1['protocols']=None
 	#dummy1['static']=[]
@@ -1919,7 +1933,7 @@ def vmx_get_intf(d1,i):
 def make_evo_config(d1,i):
 	retval=[]
 	config_dir=d1['pod']['home_dir'] + '/vm/' + d1['name'] + "/"
-	if 'ipv4' not in d1['vm'][i]['interfaces']['mgmt'].keys():
+	if 'inet' not in d1['vm'][i]['interfaces']['mgmt']['family'].keys():
 		print("where is the ip address ? ")
 		exit
 	else:
@@ -1944,7 +1958,8 @@ def make_evo_config(d1,i):
 def make_vmx_config(d1,i):
 	retval=[]
 	config_dir=d1['pod']['home_dir'] + '/vm/' + d1['name'] + "/"
-	if 'ipv4' not in d1['vm'][i]['interfaces']['mgmt'].keys():
+	#print(f"Host {i}")
+	if 'inet' not in d1['vm'][i]['interfaces']['mgmt']['family'].keys():
 		print("where is the ip address ? ")
 		exit
 	else:
@@ -2075,6 +2090,38 @@ def make_vex_config(d1,i):
 	retval.append('};')
 	return retval
 
+def make_veos_config(d1,i):
+	#print("creating veos_config")
+	retval=[]
+	mgmt_bridge=d1['vm'][i]['interfaces']['mgmt']['bridge']
+	config_dir=d1['pod']['home_dir'] + '/vm/' + d1['name'] + "/"
+	# config_dir=param1.home_dir + d1['pod']['user'] + '/' + d1['name'] + "/"
+	intf_list=[]
+	# print("make config for srx ",i)
+	retval.append(f"vm \"{i}\" {{")
+	retval.append(f"   hostname \"{i}\";")
+	retval.append('      VEOS_CDROM')
+	retval.append('      VEOSDISK')
+	retval.append('      memory 4096;')
+	retval.append('      ncpus 2;')
+	retval.append('      setvar "+qemu_args" "-cpu host,+vmx";')
+	# retval.append('      setvar "qemu_args" "-cpu qemu64,+vmx,+ssse3,+sse4_1,+sse4_2,+aes,+avx,+pat,+pclmulqdq,+rdtscp,+syscall,+tsc-deadline,+x2apic,+xsave";')
+	#retval.append("         install \"" + config_dir + i + ".conf\" \"/root/junos.base.conf\";")
+	retval.append(f"         install \"{config_dir}lab.conf\" \"/lab.conf\";")
+	#retval.append('      interface "vio0" { bridge "' + mgmt_bridge + '"; };')
+	retval.append(f"      interface \"em0\" {{ bridge \"{mgmt_bridge}\"; }};")
+	# print(intf_list)
+	for j in d1['vm'][i]['interfaces'].keys():
+		if 'ge' in j:
+			intf_list.append(j)	
+	intf_list.sort()
+	for j in intf_list:
+		intf_name = "em" + str(int(j.split("/")[2]) + 1)
+		#retval.append('      interface "' +  intf_name + '" { bridge "' + d1['vm'][i]['interfaces'][j]['bridge'] + '";};')
+		retval.append(f"      interface \"{intf_name}\" {{ bridge \"{d1['vm'][i]['interfaces'][j]['bridge']}\";}};")
+	retval.append('};')
+	return retval
+
 def make_vrr_config(d1,i):
 	retval=[]
 	mgmt_bridge=d1['vm'][i]['interfaces']['mgmt']['bridge']
@@ -2124,9 +2171,9 @@ def connect_to_vm(d1,i):
 	jumphost_transport=ssh_gw.get_transport()
 	src_addr=(d1['gw_ip'],22)
 	if d1['vm'][i]['type']=='junos':
-		dest_addr=(d1['vm'][i]['interfaces']['mgmt']['ipv4'].split('/')[0],22)
+		dest_addr=(d1['vm'][i]['interfaces']['mgmt']['family']['inet'].split('/')[0],22)
 	else:
-		dest_addr=(d1['vm'][i]['interfaces']['em0']['ipv4'].split('/')[0],22)
+		dest_addr=(d1['vm'][i]['interfaces']['em0']['family']['inet'].split('/')[0],22)
 	#print(f"source address {src_addr[0]}, destination address {dest_addr[0]}")
 	jumphost_channel = jumphost_transport.open_channel("direct-tcpip", dest_addr, src_addr)
 	ssh=paramiko.SSHClient()
@@ -2171,7 +2218,7 @@ def send_init(d1,i):
 	my_hash_root = md5_crypt.hash(d1['junos_login']['password'])
 	my_hash = md5_crypt.hash(d1['junos_login']['password'])
 	#cmd1="vmm serial -t " + i
-	ip_mgmt = d1['vm'][i]['interfaces']['mgmt']['ipv4']
+	ip_mgmt = d1['vm'][i]['interfaces']['mgmt']['family']['inet']
 	br_mgmt = d1['vm'][i]['interfaces']['mgmt']['bridge']
 	gateway4 = get_gateway4(d1,i)
 	junos_status=0

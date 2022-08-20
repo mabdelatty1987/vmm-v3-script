@@ -1,0 +1,38 @@
+
+set interfaces ge-0/0/0 flexible-vlan-tagging
+set interfaces ge-0/0/0 encapsulation flexible-ethernet-services
+set interfaces ge-0/0/0 unit 1 vlan-id 1
+set interfaces ge-0/0/0 unit 1 family inet address 192.168.255.2/31
+set interfaces ge-0/0/0 unit 1 family inet6 address 2001:dead:beef:ffff::ffff:2/127
+set interfaces ge-0/0/1 mtu 9000
+set interfaces ge-0/0/1 unit 0 family inet address 10.100.1.145/31
+set interfaces ge-0/0/1 unit 0 family iso
+set interfaces ge-0/0/1 unit 0 family inet6
+set interfaces ge-0/0/1 unit 0 family mpls
+set interfaces ge-0/0/2 mtu 9000
+set interfaces ge-0/0/2 unit 0 family inet address 10.100.1.147/31
+set interfaces ge-0/0/2 unit 0 family iso
+set interfaces ge-0/0/2 unit 0 family inet6
+set interfaces ge-0/0/2 unit 0 family mpls
+set policy-options policy-statement to_int then next-hop self
+set routing-options router-id 10.100.1.2
+set routing-options autonomous-system 64512
+set protocols bgp group to_rr type internal
+set protocols bgp group to_rr local-address 10.100.1.2
+set protocols bgp group to_rr family inet any
+set protocols bgp group to_rr family inet-vpn any
+set protocols bgp group to_rr family inet6 labeled-unicast explicit-null
+set protocols bgp group to_rr family inet6-vpn any
+set protocols bgp group to_rr export to_int
+set protocols bgp group to_rr neighbor 10.100.1.255
+set protocols bgp group to_vlan1 local-address 192.168.255.2
+set protocols bgp group to_vlan1 family inet any
+set protocols bgp group to_vlan1 peer-as 65002
+set protocols bgp group to_vlan1 neighbor 192.168.255.3
+set protocols bgp group to_vlan1_v6 local-address 2001:dead:beef:ffff::ffff:2
+set protocols bgp group to_vlan1_v6 family inet6 any
+set protocols bgp group to_vlan1_v6 peer-as 65002
+set protocols bgp group to_vlan1_v6 neighbor 2001:dead:beef:ffff::ffff:3
+set protocols mpls explicit-null
+set protocols mpls ipv6-tunneling
+

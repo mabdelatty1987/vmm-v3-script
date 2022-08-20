@@ -2,7 +2,6 @@
 sudo hostname svr1
 hostname | sudo tee /etc/hostname
 cat << EOF | sudo tee /etc/netplan/01_net.yaml
-
 network:
   ethernets:
     eth0:
@@ -11,18 +10,18 @@ network:
       dhcp4: no
   bonds:
     bond0:
-      macaddress: 56:04:19:00:0c:63
+      macaddress: 56:04:19:00:ba:12
       interfaces:
+        - eth0
         - eth1
-        - eth2
       parameters:
          mode: 802.3ad
       # addresses: [ 192.168.101.103/24, fc00:dead:beef:101::10:103/64]
-      addresses: [ 192.168.101.1/24]
+      addresses: [ 192.168.101.1/24,2001:dead:beef:101::1000:1/64]
+      #addresses: [ 192.168.101.1/24]
       gateway4: 192.168.101.254
-      # gateway6: fc00:dead:beef:101::1
+      gateway6: 2001:dead:beef:101::1
 EOF
-
 
 
 
@@ -38,17 +37,44 @@ network:
       dhcp4: no
   bonds:
     bond0:
-      macaddress: 56:04:19:00:49:f1
+      macaddress: 56:04:19:00:4b:08
       interfaces:
-        - eth1
         - eth0
+        - eth1
       parameters:
-         mode: 802.3ad
-      # addresses: [ 192.168.101.103/24, fc00:dead:beef:101::10:103/64]
-      addresses: [ 192.168.102.2/24]
+        mode: 802.3ad
+      #addresses: [ 192.168.101.103/24, fc00:dead:beef:101::10:103/64]
+      addresses: [ 192.168.102.2/24,2001:dead:beef:102::1000:2/64]
       gateway4: 192.168.102.254
-      # gateway6: fc00:dead:beef:101::1
+      gateway6: 2001:dead:beef:102::1
 EOF
+
+
+
+sudo hostname svr3
+hostname | sudo tee /etc/hostname
+cat << EOF | sudo tee /etc/network/interfaces
+auto lo
+iface lo inet loopback
+auto eth0
+iface eth0 inet manual
+auto eth1
+iface eth1 inet manual
+
+auto bond0
+iface bond0 inet static
+bond-slaves eth0 eth1
+bond-mode 802.3ad
+address 192.168.101.3/24
+gateway 192.168.101.1
+
+iface bond0 inet6 static
+address 2001:dead:beef:101::1000:3/64
+gateway 2001:dead:beef:101::1
+
+EOF 
+
+   
 
        
 

@@ -1,0 +1,66 @@
+sudo ip link add dev cust1_eth1 type vrf table 11
+sudo ip link set dev cust1_eth1 up
+sudo ip link show type vrf
+sudo ip link set dev eth1v10 vrf cust1_eth1
+
+
+set routing-instances cust1_eth1 instance-type vrf
+set routing-instances cust1_eth1 protocols bgp group to_ce1 neighbor 192.168.255.13 family inet unicast
+set routing-instances cust1_eth1 protocols bgp group to_ce1 neighbor 192.168.255.13 family inet6 unicast
+set routing-instances cust1_eth1 protocols bgp group to_ce1 neighbor 192.168.255.13 peer-as 65103
+set routing-instances cust1_eth1 interface eth1v10
+set routing-instances cust1_eth1 vrf-target target:64512:10001
+set routing-instances cust1_eth1 vrf-table-label
+
+
+set policy-options policy-statement cust1_eth3 term 1 from route-filter 192.168.13.0/24 orlonger
+set policy-options policy-statement cust1_eth3 term 1 then accept
+set policy-options policy-statement cust1_eth3 term 2 from route-filter 2001:dead:beef:1013::0/64 orlonger
+set policy-options policy-statement cust1_eth3 term 2 then accept
+set policy-options policy-statement cust1_eth3 term default then reject
+
+
+set interfaces ge-0/0/0 unit 10 vlan-id 10
+set interfaces ge-0/0/0 unit 10 family inet address 192.168.255.10/31
+set interfaces ge-0/0/0 unit 10 family inet6 address 2001:dead:beef:ffff::ffff:10/127
+
+set routing-instances cust1_eth1 instance-type vrf
+set routing-instances cust1_eth1 protocols bgp group to_ce1 neighbor 192.168.255.11 peer-as 65102
+set routing-instances cust1_eth1 protocols bgp group to_ce1 neighbor 2001:dead:beef:ffff::ffff:11 family inet6 unicast
+set routing-instances cust1_eth1 protocols bgp group to_ce1 neighbor 2001:dead:beef:ffff::ffff:11 peer-as 65102
+set routing-instances cust1_eth1 interface ge-0/0/0.10
+set routing-instances cust1_eth1 vrf-target target:64512:10001
+set routing-instances cust1_eth1 vrf-table-label
+
+
+set policy-options policy-statement cust1_eth2 term 1 from route-filter 192.168.12.0/24 orlonger
+set policy-options policy-statement cust1_eth2 term 1 then accept
+set policy-options policy-statement cust1_eth2 term 2 from route-filter 2001:dead:beef:1012::0/64 orlonger
+set policy-options policy-statement cust1_eth2 term 2 then accept
+set policy-options policy-statement cust1_eth2 term default then reject
+
+
+set routing-instances cust1_eth2 protocols bgp group to_pe1 neighbor 192.168.255.10 export cust1_eth2
+set routing-instances cust1_eth2 protocols bgp group to_pe1 neighbor 192.168.255.10 peer-as 64512
+set routing-instances cust1_eth2 protocols bgp group to_pe1 neighbor 2001:dead:beef:ffff::ffff:10 family inet6 unicast
+set routing-instances cust1_eth2 protocols bgp group to_pe1 neighbor 2001:dead:beef:ffff::ffff:10 export cust1_eth2
+set routing-instances cust1_eth2 protocols bgp group to_pe1 neighbor 2001:dead:beef:ffff::ffff:10 peer-as 64512
+
+
+
+set routing-instances cust1_eth1 instance-type vrf
+set routing-instances cust1_eth1 protocols bgp group to_ce1 neighbor 192.168.255.15 peer-as 65104
+set routing-instances cust1_eth1 protocols bgp group to_ce1 neighbor 2001:dead:beef:ffff::ffff:15 family inet6 unicast
+set routing-instances cust1_eth1 protocols bgp group to_ce1 neighbor 2001:dead:beef:ffff::ffff:15 peer-as 65104
+set routing-instances cust1_eth1 interface eth1v10
+set routing-instances cust1_eth1 vrf-target target:64512:10001
+set routing-instances cust1_eth1 vrf-table-label
+
+
+del routing-instances cust1_eth1 protocols bgp group to_pe1 neighbor 192.168.255.8 local-as 65101
+del routing-instances cust1_eth3 protocols bgp group to_pe3 neighbor 192.168.255.12 local-as 65103
+del routing-instances cust1_eth4 protocols bgp group to_pe4 neighbor 192.168.255.14 local-as 65104
+
+set routing-instances cust1_eth1 routing-options autonomous-system 65101
+set routing-instances cust1_eth3 routing-options autonomous-system 65103
+set routing-instances cust1_eth4 routing-options autonomous-system 65104

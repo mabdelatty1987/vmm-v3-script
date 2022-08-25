@@ -13,8 +13,8 @@ variables:
   #agilio-insecure:              &agilio-insecure                false
   #agilio-phy:                   &agilio-phy                     "nfp_p0"
   docker-registry:              &docker-registry                hub.juniper.net/contrail
-  docker-user:                  &docker-user                    JNPR-FieldUser5
-  docker-password:              &docker-password                SjvBqx3ktFuWVC4REX7y
+  docker-user:                  &docker-user                    bookwork
+  docker-password:              &docker-password                password
   image-tag:                    &image-tag                      21.3.1.98
   ntp-source:                   &ntp-source                     ntp.juniper.net
   #docker-registry-insecure:     &docker-registry-insecure       "false"

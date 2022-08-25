@@ -4,8 +4,8 @@ global_configuration:
   ENABLE_DESTROY: True
   CONTAINER_REGISTRY: hub.juniper.net/contrail
   REGISTRY_PRIVATE_INSECURE: false
-  CONTAINER_REGISTRY_USERNAME: JNPR-FieldUser5
-  CONTAINER_REGISTRY_PASSWORD: SjvBqx3ktFuWVC4REX7y
+  CONTAINER_REGISTRY_USERNAME: bookworm
+  CONTAINER_REGISTRY_PASSWORD: password
 
 provider_config:
   bms:

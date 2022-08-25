@@ -5,7 +5,7 @@ pod:
   vmmserver: sv8-pod4-vmm.englab.juniper.net
   jumpserver: ttsv-shell110.juniper.net
   user: irzan
-  adpassword: ThisIsMyPassword
+  adpassword: ThisIsAnaMabokCoy
   home_dir : /vmm/data/user_disks/irzan
   ssh_key_name: key1
   ntp: 172.16.10.1

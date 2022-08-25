@@ -78,16 +78,16 @@ def change_gateway4(d1):
 				if 'family' in d1['vm'][i]['interfaces'][j].keys():
 					if 'inet' in d1['vm'][i]['interfaces'][j]['family'].keys():
 						#print(f"host {i} {d1['vm'][i]['interfaces'][j]['family'].keys()}")
-
 						#if 'gateway4' in d1['vm'][i]['interfaces'][j]['family']['inet'].keys():
-						if 'gateway4' in d1['vm'][i]['interfaces'][j].keys():
-							if 'static' in d1['vm'][i]['interfaces'][j].keys():
+						#if 'gateway4' in d1['vm'][i]['interfaces'][j].keys():
+						if 'gateway4' in d1['vm'][i]['interfaces'][j]['family'].keys():
+							if 'static' in d1['vm'][i]['interfaces'][j]['family'].keys():
 								#d1['vm'][i]['interfaces'][j]['static'].append({'to':'default','via':j['gateway4']})
-								d1['vm'][i]['interfaces'][j]['static'].append({'to':'0.0.0.0/0','via':d1['vm'][i]['interfaces'][j]['gateway4']})
+								d1['vm'][i]['interfaces'][j]['family']['static'].append({'to':'0.0.0.0/0','via':d1['vm'][i]['interfaces'][j]['gateway4']})
 							else:
 								#d1['vm'][i]['interfaces'][j]['static']=[{'to':'default','via': d1['vm'][i]['interfaces'][j]['gateway4']}]
-								d1['vm'][i]['interfaces'][j]['static']=[{'to':'0.0.0.0/0','via': d1['vm'][i]['interfaces'][j]['gateway4']}]
-							d1['vm'][i]['interfaces'][j].pop('gateway4')
+								d1['vm'][i]['interfaces'][j]['family']['static']=[{'to':'0.0.0.0/0','via': d1['vm'][i]['interfaces'][j]['family']['gateway4']}]
+							d1['vm'][i]['interfaces'][j]['family'].pop('gateway4')
 							
 
 def create_config_interfaces(d1):
@@ -613,8 +613,8 @@ def get_dhcp_config(d1):
 		if 'family' in d1['vm']['gw']['interfaces'][i].keys():
 			if 'inet' in d1['vm']['gw']['interfaces'][i]['family'].keys():
 				gw_net_config[i.replace('em','eth')]=d1['vm']['gw']['interfaces'][i]['family']['inet']
-				if 'static' in d1['vm']['gw']['interfaces'][i].keys():
-					static_config[i.replace('em','eth')]=d1['vm']['gw']['interfaces'][i]['static']
+				if 'static' in d1['vm']['gw']['interfaces'][i]['family'].keys():
+					static_config[i.replace('em','eth')]=d1['vm']['gw']['interfaces'][i]['family']['static']
 		if 'mtu' in d1['vm']['gw']['interfaces'][i].keys():
 			mtu_config[i.replace('em','eth')]=d1['vm']['gw']['interfaces'][i]['mtu']
 
@@ -817,14 +817,14 @@ def set_host(d1):
 					if 'family' in intf[j].keys():
 						if 'inet' in intf[j]['family'].keys():
 							line_to_file +=	['      addresses: [ {} ]'.format(intf[j]['family']['inet'])]
-							if 'static' in intf[j].keys():
-								for k in intf[j]['static']:
+							if 'static' in intf[j]['family'].keys():
+								for k in intf[j]['family']['static']:
 									if k['to'] == '0.0.0.0/0':
 										line_to_file += ['      nameservers:']
 										line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
 										break
 								line_to_file += ['      routes:']
-								for k in intf[j]['static']:
+								for k in intf[j]['family']['static']:
 									line_to_file += ['        - to: {}'.format(k['to'])]
 									line_to_file += ['          via: {}'.format(k['via'])]
 									line_to_file += ['          metric: 1']
@@ -839,14 +839,14 @@ def set_host(d1):
 						if 'inet' in br_intf[j]['family'].keys():
 							line_to_file +=	['      addresses: [ {} ]'.format(br_intf[j]['family']['inet'])]
 						#print(f"j  {j}")
-						if 'static' in br_intf[j].keys():
-							for k in br_intf[j]['static']:
+						if 'static' in br_intf[j]['family'].keys():
+							for k in br_intf[j]['family']['static']:
 								if k['to'] == '0.0.0.0/0':
 									line_to_file += ['      nameservers:']
 									line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
 									break
 							line_to_file += ['      routes:']
-							for k in br_intf[j]['static']:
+							for k in br_intf[j]['family']['static']:
 								line_to_file += ['        - to: {}'.format(k['to'])]
 								line_to_file += ['          via: {}'.format(k['via'])]
 								line_to_file += ['          metric: 1']
@@ -874,9 +874,9 @@ def set_host(d1):
 							line_to_file +=	['      addresses: [ {} ]'.format(intf[j]['family']['inet'])]
 							line_to_file += ['      nameservers:']
 							line_to_file += ['         addresses: [ {} , {}]'.format(param1.jnpr_dns1,param1.jnpr_dns2)]
-							if 'static' in intf[j].keys():
+							if 'static' in intf[j]['family'].keys():
 								line_to_file += ['      routes:']
-								for k in intf[j]['static']:
+								for k in intf[j]['family']['static']:
 									line_to_file += ['        - to: {}'.format(k['to'])]
 									line_to_file += ['          via: {}'.format(k['via'])]
 									line_to_file += ['          metric: 1']
@@ -893,13 +893,13 @@ def set_host(d1):
 						line_to_file +=	['PREFIX={}'.format(intf[j]['family']['inet'].split('/')[1]) ]
 						if 'mtu' in intf[j].keys():
 							line_to_file +=	['MTU={}'.format(intf[j]['mtu'])]
-						if 'gateway4' in intf[j].keys():
+						if 'gateway4' in intf[j]['family'].keys():
 							line_to_file +=	['GATEWAY={}'.format(intf[j]['gateway4'])]
-						if 'dns' in intf[j].keys():
+						#if 'dns' in intf[j].keys():
 							line_to_file +=	['DNS1={}'.format(param1.jnpr_dns1)]
 						line_to_file += ['" | sudo tee /etc/sysconfig/network-scripts/ifcfg-{}'.format(j.replace("em","eth"))]
-						if 'static' in intf[j].keys():
-							list_of_static = intf[j]['static']
+						if 'static' in intf[j]['family'].keys():
+							list_of_static = intf[j]['family']['static']
 							line_to_file +=	['echo "']
 							for k in list_of_static:
 								line_to_file +=	['{} via {} dev {}'.format(k['to'],k['via'],j.replace("em","eth"))]
@@ -919,11 +919,11 @@ def set_host(d1):
 						line_to_file +=	['  address {}'.format(intf[j]['family']['inet'])]
 						if 'mtu' in intf[j].keys():
 							line_to_file +=	['  mtu {}'.format(intf[j]['mtu'])]	
-						if 'gateway4' in intf[j].keys():
-							line_to_file +=	['  gateway {}'.format(intf[j]['gateway4'])]
+						if 'gateway4' in intf[j]['family'].keys():
+							line_to_file +=	['  gateway {}'.format(intf[j]['family']['gateway4'])]
 							line_to_file +=	['  dns-nameservers {}'.format(param1.jnpr_dns1)]
-						if 'static' in intf[j].keys():
-							list_of_static = intf[j]['static']
+						if 'static' in intf[j]['family'].keys():
+							list_of_static = intf[j]['family']['static']
 							for k in list_of_static:
 								line_to_file +=	['  up ip route add {} via {} dev {}'.format(k['to'],k['via'],j.replace("em","eth"))]
 					
@@ -938,9 +938,9 @@ def set_host(d1):
 			line_to_file +=	['auto eth0']
 			line_to_file +=	['interface eth0 inet static']
 			line_to_file +=	['  address {}'.format(intf['em0']['family']['inet'])]
-			if 'gateway4' in intf['em0'].keys():
-				line_to_file +=	['  gateway {}'.format(intf['em0']['gateway4'])]
-			if 'dns' in intf['em0'].keys():
+			if 'gateway4' in intf['em0']['family'].keys():
+				line_to_file +=	['  gateway {}'.format(intf['em0']['family']['gateway4'])]
+			#if 'dns' in intf['em0'].keys():
 				line_to_file +=	['  dns-nameservers {}'.format(param1.jnpr_dns1)]
 			intf_list = d1['vm'][i]['interfaces']
 		elif d1['vm'][i]['os'] == 'bridge':
@@ -951,9 +951,9 @@ def set_host(d1):
 			line_to_file +=	['auto eth0']
 			line_to_file +=	['interface eth0 inet static']
 			line_to_file +=	['  address {}'.format(intf['em0']['family']['inet'])]
-			if 'gateway4' in intf['em0'].keys():
-				line_to_file +=	['  gateway {}'.format(intf['em0']['gateway4'])]
-			if 'dns' in intf['em0'].keys():
+			if 'gateway4' in intf['em0']['family'].keys():
+				line_to_file +=	['  gateway {}'.format(intf['em0']['family']['gateway4'])]
+			#if 'dns' in intf['em0'].keys():
 				line_to_file +=	['  dns-nameservers {}'.format(param1.jnpr_dns1)]
 			intf_list = d1['vm'][i]['interfaces']
 			brtmp1={}
@@ -1959,6 +1959,7 @@ def make_vmx_config(d1,i):
 	retval=[]
 	config_dir=d1['pod']['home_dir'] + '/vm/' + d1['name'] + "/"
 	#print(f"Host {i}")
+	
 	if 'inet' not in d1['vm'][i]['interfaces']['mgmt']['family'].keys():
 		print("where is the ip address ? ")
 		exit

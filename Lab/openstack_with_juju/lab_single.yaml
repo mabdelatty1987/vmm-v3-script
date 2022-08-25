@@ -8,7 +8,7 @@ pod:
   # if your account can access vmm server directly, then you can comment out the following line
   #jumpserver: ttqc-shell010.juniper.net
   user: irzan
-  adpassword: ThisIsMyPassword
+  adpassword: ThisIsAnaMabokCoy
   home_dir : /vmm/data/user_disks/irzan
   ssh_key_name: key1
   #ntp: 172.16.10.1

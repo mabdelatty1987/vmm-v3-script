@@ -36,45 +36,51 @@ vm:
         bridge: external
       em1: 
         bridge: lan1
-        ipv4: 172.16.11.1/24
-        dhcp_range: 172.16.11.5-172.16.11.25
         mtu: 9000
+        family:
+          inet: 172.16.11.1/24
+        dhcp_range: 172.16.11.5-172.16.11.25
       em2: 
         bridge: lan2
-        ipv4: 172.16.12.1/24
         mtu: 9000
+        family:
+          inet: 172.16.12.1/24
       em3: 
         bridge: lan3
-        ipv4: 172.16.13.130/31
+        family:
+          inet: 172.16.13.130/31
       em4: 
         bridge: lan4
-        ipv4: 172.16.14.1/24
+        family:
+          inet: 172.16.14.1/24
         dhcp_range: 172.16.14.5-172.16.14.25
       em5: 
         bridge: lan5
-        ipv4: 172.16.13.128/31
         mtu: 9000
-        static:
-          - to: 172.16.255.1/32
-            via: 172.16.13.129
-  master:
+        family:
+          inet: 172.16.13.128/31
+          static:
+            - to: 172.16.255.1/32
+              via: 172.16.13.129
+  node0:
     type: pchpv1
     os: ubuntu
     vnc: true
     interfaces:
       em0: 
-        bridge: lan1 
-        ipv4: 172.16.11.10/24 
-        gateway4: 172.16.11.1
-        dns: 172.16.11.1
+        bridge: lan1
         mtu: 9000
+        family:
+          inet: 172.16.11.10/24 
+          gateway4: 172.16.11.1
       em1:
         bridge: lan2
-        ipv4: 172.16.12.10/24 
         mtu: 9000
-        static:
-          - to: 172.16.255.1/32
-            via: 172.16.12.1
+        family:
+          inet: 172.16.12.10/24 
+          static:
+            - to: 172.16.255.1/32
+              via: 172.16.12.1
   node1:
     type: pchpv1
     os: ubuntu
@@ -82,17 +88,18 @@ vm:
     interfaces:
       em0: 
         bridge: lan1 
-        ipv4: 172.16.11.11/24 
-        gateway4: 172.16.11.1
-        dns: 172.16.11.1
         mtu: 9000
+        family:
+          inet: 172.16.11.11/24 
+          gateway4: 172.16.11.1
       em1: 
         bridge: lan2
-        ipv4: 172.16.12.11/24 
         mtu: 9000
-        static:
-          - to: 172.16.255.1/32
-            via: 172.16.12.1
+        family:
+          inet: 172.16.12.11/24 
+          static:
+            - to: 172.16.255.1/32
+              via: 172.16.12.1
   node2:
     type: pchpv1
     os: ubuntu
@@ -100,17 +107,18 @@ vm:
     interfaces:
       em0: 
         bridge: lan1 
-        ipv4: 172.16.11.12/24 
-        gateway4: 172.16.11.1
-        dns: 172.16.11.1
         mtu: 9000
+        family:
+          inet: 172.16.11.12/24 
+          gateway4: 172.16.11.1   
       em1: 
         bridge: lan2
-        ipv4: 172.16.12.12/24 
         mtu: 9000
-        static:
-          - to: 172.16.255.1/32
-            via: 172.16.12.1
+        family:
+          inet: 172.16.12.12/24
+          static:
+            - to: 172.16.255.1/32
+              via: 172.16.12.1
   node3:
     type: pchpv1
     os: ubuntu
@@ -118,17 +126,18 @@ vm:
     interfaces:
       em0: 
         bridge: lan1 
-        ipv4: 172.16.11.13/24 
-        gateway4: 172.16.11.1
-        dns: 172.16.11.1
         mtu: 9000
+        family:
+          inet: 172.16.11.13/24 
+          gateway4: 172.16.11.1
       em1: 
         bridge: lan2
-        ipv4: 172.16.12.13/24 
         mtu: 9000
-        static:
-          - to: 172.16.255.1/32
-            via: 172.16.12.1
+        family:
+          inet: 172.16.12.13/24 
+          static:
+            - to: 172.16.255.1/32
+              via: 172.16.12.1
   node4:
     type: pcmedium
     os: ubuntu
@@ -136,14 +145,15 @@ vm:
     interfaces:
       em0: 
         bridge: lan1 
-        ipv4: 172.16.11.14/24 
-        gateway4: 172.16.11.1
-        dns: 172.16.11.1
         mtu: 9000
+        family:
+          inet: 172.16.11.14/24 
+          gateway4: 172.16.11.1   
       em1: 
         bridge: lan2
-        ipv4: 172.16.12.14/24 
         mtu: 9000
+        family:
+          inet: 172.16.12.14/24 
   registry:
     type: pcmedium
     os: ubuntu
@@ -151,9 +161,9 @@ vm:
     interfaces:
       em0: 
         bridge: lan4
-        ipv4: 172.16.14.10/24 
-        gateway4: 172.16.14.1
-        dns: 172.16.14.1
+        family:
+          inet: 172.16.14.10/24 
+          gateway4: 172.16.14.1
       em1: 
         bridge: ds
   sdngw:
@@ -162,7 +172,8 @@ vm:
     interfaces:
       mgmt:
         bridge: lan1
-        ipv4: 172.16.11.22/24 
+        family:
+          inet: 172.16.11.22/24 
       lo0:
         family:
           inet: 172.16.255.1/32

@@ -1,0 +1,10 @@
+
+network:
+  ethernets:
+    eth1:
+       addresses: [ 172.16.10.1/24 ]
+    eth2:
+            addresses: [ 172.16.12.1/24, 2001:dead:beef:1012::1/64 ]
+    eth3:
+            addresses: [ 172.16.13.0/31, fd00:dead:beef:ffff::13:0/127 ]
+

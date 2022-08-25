@@ -19,8 +19,8 @@ variables:
   
   # Contrail variables
   contrail-docker-registry: &contrail-docker-registry  hub.juniper.net/contrail
-  contrail-docker-user:     &contrail-docker-user      JNPR-FieldUser5
-  contrail-docker-password: &contrail-docker-password  SjvBqx3ktFuWVC4REX7y
+  contrail-docker-user:     &contrail-docker-user      bookworm
+  contrail-docker-password: &contrail-docker-password  password
   contrail-image-tag:       &contrail-image-tag        21.3.1.98
   # other
   worker-multiplier:   &worker-multiplier   0.25

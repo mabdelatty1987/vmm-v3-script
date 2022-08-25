@@ -1,0 +1,88 @@
+### by vmm-v3-script ###
+Host *
+    StrictHostKeyChecking no
+	
+	
+host vmm
+    hostname sv8-pod4-vmm.englab.juniper.net
+    user irzan
+	IdentityFile ~/.ssh/key1
+   
+host gw
+   hostname 10.93.16.118
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   
+host proxy
+   hostname 10.93.16.118
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   DynamicForward 1080
+host spine1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.101:22 gw 
+host spine2
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.102:22 gw 
+host leaf1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.103:22 gw 
+host leaf2
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.104:22 gw 
+host leaf3
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.105:22 gw 
+host leaf4
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.106:22 gw 
+host leaf5
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.107:22 gw 
+host sw1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.108:22 gw 
+host sw2
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.109:22 gw 
+host pe1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.110:22 gw 
+host pe2
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.111:22 gw 
+host p1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.112:22 gw 
+host vxlangw
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.114:22 gw 
+host fw1
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.115:22 gw 
+host apstra
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.2:22 gw 
+host ztp
+   user admin
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.10.3:22 gw 
+host svr11
+   user ubuntu
+	IdentityFile ~/.ssh/key1
+   ProxyCommand ssh -W 172.16.12.10:22 gw 

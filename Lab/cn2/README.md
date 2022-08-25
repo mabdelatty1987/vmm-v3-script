@@ -15,7 +15,7 @@ The official documentation on how to install CN2 with kubernetes cluster can be 
 - VMX: SDNGW/SDN gateway 
 
 - kubernetes cluster :
-  - master node: master
+  - node0 node: node0
   - worker nodes: node1, node2, node3
   - NFS share for shared storage : node4
 
@@ -42,17 +42,17 @@ The official documentation on how to install CN2 with kubernetes cluster can be 
 
         ../../vmm.py set_gw
 
-7. Verify that you can access other nodes (linux and junos VM), such **master**, **node1**, **node2**, etc. Please use the credential to login.
+7. Verify that you can access other nodes (linux and junos VM), such **node0**, **node1**, **node2**, etc. Please use the credential to login.
 
-        ssh master
+        ssh node0
 
 8. Run script [vmm.py](../../vmm.py) to send and run initial configuration on linux nodes. This script will also reboot the VM. So wait before you test connectivity into the VM
 
         ../../vmm.py set_host
 
-9. Verify that you can access linux and junos VMs, such **master**, **node1**, **sdngw**, without entering the password. You may have to wait for few minutes for the nodes to be up and running
+9. Verify that you can access linux and junos VMs, such **node0**, **node1**, **sdngw**, without entering the password. You may have to wait for few minutes for the nodes to be up and running
 
-        ssh master
+        ssh node0
         ssh node0
         ssh node1
 
@@ -61,7 +61,7 @@ The official documentation on how to install CN2 with kubernetes cluster can be 
 There are two options to install kubernetes cluster
 - option 1 : using kubeadm
   
-  With this method, kubernetes cluster installation will be done manually using kubeadm on each nodes (master and worker nodes).
+  With this method, kubernetes cluster installation will be done manually using kubeadm on each nodes (node0 and worker nodes).
   
   Please refer to this [document](install_k8s_using_kubeadm.md) on how to install kubernetes cluster using kubeadm
 

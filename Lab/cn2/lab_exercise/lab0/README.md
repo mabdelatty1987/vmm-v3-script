@@ -18,7 +18,7 @@ This container image will be used for the subsequent lab exercise.
 4. Create container image using podman
 
         cd webserver
-        podman build -t 172.16.14.10:50000/webserver:0.1 .
+        podman build -t 172.16.14.10:5000/webserver:0.1 .
 
 5. Verify that container image has been created
 

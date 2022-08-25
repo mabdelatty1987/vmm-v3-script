@@ -7,7 +7,7 @@ sudo pip install -r requirements.txt
 cp -rfp inventory/sample inventory/mycluster
 cat << EOF | tee inventory/mycluster/inventory.ini
 [all]
-master  ansible_host=172.16.11.10  ip=172.16.12.10  ## ip address 172.16.11.10 (eth0) is management IP and 172.16.12.10 (eth1) is used for kubernetes services 
+node0  ansible_host=172.16.11.10  ip=172.16.12.10  ## ip address 172.16.11.10 (eth0) is management IP and 172.16.12.10 (eth1) is used for kubernetes services 
 node1   ansible_host=172.16.11.11  ip=172.16.12.11  ## ip address 172.16.11.11 (eth0) is management IP and 172.16.12.11 (eth1) is used for kubernetes services 
 node2   ansible_host=172.16.11.12  ip=172.16.12.12  ## ip address 172.16.11.12 (eth0) is management IP and 172.16.12.12 (eth1) is used for kubernetes services 
 node3   ansible_host=172.16.11.13  ip=172.16.12.13  ## ip address 172.16.11.13 (eth0) is management IP and 172.16.12.13 (eth1) is used for kubernetes services 
@@ -17,10 +17,10 @@ node3   ansible_host=172.16.11.13  ip=172.16.12.13  ## ip address 172.16.11.13 (
 # bastion ansible_host=x.x.x.x ansible_user=some_user
 
 [kube_control_plane]
-master
+node0
 
 [etcd]
-master
+node0
 
 [kube_node]
 node1

@@ -1,5 +1,5 @@
 # Running Juniper Apstra 4.1.1 and vEX
-this script is to run Juniper Apstra 4.1.1 (Beta Release ) and vEX (21.2R3-S1.7) on juniper's VMM
+this script is to run Juniper Apstra 4.1.1, Apstra ZTP server and vEX (21.2R3-S1.7) on juniper's VMM
 
 ## Topology
 The logical topology of the testbed is as follows :

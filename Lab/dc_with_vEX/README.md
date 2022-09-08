@@ -97,7 +97,7 @@ The logical topology of the testbed is as follows :
 2. Login into AOS using the default username/password : admin/admin, and change the default password
  ![change_password](images/change_password.png)
 
-5. Currently node **AFC** is configured with dhcp for Ip address assignment. If you want change the ip address to static, change it to the following:
+5. Currently node **apstra** is configured with dhcp for Ip address assignment. If you want change the ip address to static, change it to the following:
     - ip address : 172.16.10.2/24
     - gateway : 172.16.10.1
     - dns : 66.129.233.81, 66.129.233.81

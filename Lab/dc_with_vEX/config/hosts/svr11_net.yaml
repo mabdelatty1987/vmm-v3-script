@@ -1,4 +1,4 @@
-
+cat << EOF | sudo tee /etc/netplan/01_net.yaml
 network:
   ethernets:
     eth0:
@@ -13,4 +13,5 @@ network:
         - to: ::/0
           via: 2001:dead:beef:1012::1
           metric: 1
+EOF
 

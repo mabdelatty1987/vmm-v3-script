@@ -1,5 +1,6 @@
 #!/bin/bash
-OS=xUbuntu_20.04
+#OS=xUbuntu_20.04
+OS=xUbuntu_22.04
 #VERSION=1.23:1.23.0
 #VERSION=1.22
 #VERSION1=1.22.1

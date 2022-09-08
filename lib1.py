@@ -1011,10 +1011,47 @@ def get_gateway(d1,i):
 			retval=d1['vm']['gw']['interfaces'][j]['family']['inet'].split('/')[0]
 	return retval
 	
-def get_mac(d1):
+
+def get_mac_vex(d1):
+	mac_vex={}
 	for i in d1['vm'].keys():
 		if d1['vm'][i]['os'] == 'vex':
-			print(f"mac of {i} is {get_mac_vm(d1,i)}")
+			mac_vex[i]={}
+			mac_vex[i]['mac']=get_mac_vm(d1,i)
+			mac_vex[i]['ip']=d1['vm'][i]['interfaces']['mgmt']['family']['inet'].split('/')[0]
+	return mac_vex
+
+def create_ztp_config(d1):
+	mac_vex = get_mac_vex(d1)
+	if mac_vex:
+		dhcp_config = []
+		dhcp_config.append('group {')
+		dhcp_config.append(f"  option tftp-server-name \"{d1['ztp']['server']}\";")
+		dhcp_config.append(f"  subnet {d1['ztp']['subnet'].split('/')[0]} netmask {prefix2netmask(d1['ztp']['subnet'].split('/')[1])}" + " {")
+		dhcp_config.append(f"    range {d1['ztp']['range'][0]} {d1['ztp']['range'][1]};")
+		dhcp_config.append(f"    option routers {d1['ztp']['gateway']};")
+		dhcp_config.append("  }")
+		for i in mac_vex.keys():
+			dhcp_config.append(f"  host {i} " + "{")
+			dhcp_config.append(f"    hardware ethernet {mac_vex[i]['mac']};")
+			dhcp_config.append(f"    fixed-address {mac_vex[i]['ip']};")
+			dhcp_config.append("  }")
+		dhcp_config.append('}')
+		return dhcp_config
+	else:
+		return []
+		#write_to_file('ztp_config.txt',dhcp_config)
+		#for i in dhcp_config:
+		#	print(i)
+	
+
+
+#def get_mac(d1):
+#	create_dhcp_config(d1)
+	# mac_vex=get_mac_vex(d1)
+	# if mac_vex:
+	# 	for i in mac_vex.keys():
+	# 		print(f"mac of {i} is {mac_vex[i]['mac']} with ip   {mac_vex[i]['ip']} ")
 
 def get_mac_vm(d1,i):
 	if d1['pod']['type'] == 'vmm':
@@ -1321,6 +1358,10 @@ def upload(d1,upload_status=1):
 		write_to_file(f1,lab_conf)
 		write_junos_config(d1)
 		write_inventory(d1)
+		if 'ztp' in d1.keys():
+			f1 = param1.tmp_dir + "ztp_config.txt"
+			ztp_config = create_ztp_config(d1)
+			write_to_file(f1,ztp_config)
 		if upload_status:
 			upload_file_to_server(d1)
 	elif d1['pod']['type'] == 'kvm':

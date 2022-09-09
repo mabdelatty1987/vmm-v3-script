@@ -69,14 +69,21 @@ In this lab exercise, the following object will be created:
 
 13. Click **Create IP Pool**
 14. Enter the following parameters
-    - Name: VRF_Collapsed_loopback
+    - Name: Collapsed_loopback
     - Subnets: 10.100.5.0/24
 
-    ![lab3_pic1.png](images/lab3_pic10.png)
+    ![lab3_pic1.png](images/lab3_pic10a.png)
+
+15. Click **Create IP Pool**
+16. Enter the following parameters
+    - Name: VRF_Collapsed_loopback
+    - Subnets: 10.100.6.0/24
+
+    ![lab3_pic1.png](images/lab3_pic10b.png)
     
 
 
-15. Verify that six IP pools been created
+16. Verify that seven IP pools been created
     ![lab3_pic4.png](images/lab3_pic11.png)
 
 ## Creating IPv6 Pools
